@@ -27,9 +27,9 @@ Thumbs.db
 # ===============================
 # Raw & processed data (large / sensitive)
 # ===============================
-data/raw/
-data/processed/
-data/output/
+data/raw/**
+data/processed/**
+data/output/**
 
 
 # ===============================
