@@ -27,9 +27,15 @@ Thumbs.db
 # ===============================
 # Raw & processed data (large / sensitive)
 # ===============================
+# Ignore data files
 data/raw/**
 data/processed/**
 data/output/**
+
+# BUT keep folder structure
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/output/.gitkeep
 
 
 # ===============================
