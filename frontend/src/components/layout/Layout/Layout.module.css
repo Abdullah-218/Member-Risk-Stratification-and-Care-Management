@@ -1,0 +1,32 @@
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  margin-left: 16rem;
+  transition: margin-left 0.3s ease;
+}
+
+.main.sidebarClosed {
+  margin-left: 5rem;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  background-color: #f8fafc;
+}
+
+@media (max-width: 768px) {
+  .main {
+    margin-left: 0;
+  }
+
+  .main.sidebarClosed {
+    margin-left: 0;
+  }
+}

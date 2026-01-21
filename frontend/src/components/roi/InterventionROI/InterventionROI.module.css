@@ -1,0 +1,52 @@
+﻿.title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1.5rem;
+}
+
+.interventions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.intervention {
+  display: grid;
+  grid-template-columns: 220px 1fr 140px;
+  gap: 1rem;
+  align-items: center;
+}
+
+.interventionName {
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.barContainer {
+  background-color: #e5e7eb;
+  border-radius: 9999px;
+  height: 2rem;
+  overflow: hidden;
+}
+
+.bar {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 0.75rem;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+.percentage {
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.members {
+  font-size: 0.875rem;
+  color: #6b7280;
+}

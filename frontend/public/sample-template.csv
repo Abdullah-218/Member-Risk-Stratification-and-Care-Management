@@ -1,0 +1,6 @@
+﻿patient_id,age,gender,bmi,systolic_bp,diastolic_bp,glucose,cholesterol,conditions,ed_visits,hospitalizations,medications,smoking,primary_care_visits
+M-8001,68,F,34,160,95,220,245,"Diabetes Type 2,CHF,Hypertension",4,1,9,former,2
+M-8002,72,M,35,155,90,180,260,"COPD,Hypertension",2,0,7,current,0
+M-8003,65,F,28,140,85,150,200,"Diabetes Type 2",1,0,5,never,4
+M-8004,70,M,32,165,95,210,255,"CHF,CKD,Hypertension",3,2,11,former,1
+M-8005,66,F,29,145,88,165,215,"Diabetes Type 2,Hypertension",2,0,6,never,3
