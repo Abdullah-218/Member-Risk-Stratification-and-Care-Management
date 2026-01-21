@@ -9,7 +9,7 @@ class CMSDataLoader:
     Load and validate CMS DE-SynPUF Beneficiary Summary files
     """
     
-    def __init__(self, data_dir='data/raw/cms'):
+    def __init__(self, data_dir='data/raw/cms/beneficiary'):
         self.data_dir = data_dir
         
     def load_beneficiary_summary(self, year):
