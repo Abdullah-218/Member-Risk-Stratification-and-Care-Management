@@ -4,7 +4,13 @@ import Card from '../../common/Card/Card';
 import Button from '../../common/Button/Button';
 import styles from './PriorityActions.module.css';
 
-const PriorityActions = ({ highRiskCount, onViewHighRisk }) => {
+const PriorityActions = ({ highRiskCount, onViewHighRisk, onViewTrendAnalysis }) => {
+  const handleViewTrendAnalysis = () => {
+    if (onViewTrendAnalysis) {
+      onViewTrendAnalysis();
+    }
+  };
+
   return (
     <Card>
       <h3 className={styles.title}>⚠️ Priority Actions</h3>
@@ -39,7 +45,7 @@ const PriorityActions = ({ highRiskCount, onViewHighRisk }) => {
               </div>
             </div>
           </div>
-          <Button variant="secondary">
+          <Button variant="secondary" onClick={handleViewTrendAnalysis}>
             View Trend Analysis <ChevronRight size={16} />
           </Button>
         </div>

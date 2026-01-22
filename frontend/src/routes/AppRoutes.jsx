@@ -5,7 +5,10 @@ import Layout from '../components/layout/Layout/Layout';
 import LoginPage from '../pages/LoginPage/LoginPage';
 import DashboardPage from '../pages/DashboardPage/DashboardPage';
 import UploadPage from '../pages/UploadPage/UploadPage';
+import DepartmentsPage from '../pages/DepartmentsPage/DepartmentsPage';
 import HighRiskMembersPage from '../pages/HighRiskMembersPage/HighRiskMembersPage';
+import RiskMembersPage from '../pages/RiskMembersPage/RiskMembersPage';
+import DepartmentMembersPage from '../pages/DepartmentMembersPage/DepartmentMembersPage';
 import MemberDetailPage from '../pages/MemberDetailPage/MemberDetailPage';
 import ROIPage from '../pages/ROIPage/ROIPage';
 import ReportsPage from '../pages/ReportsPage/ReportsPage';
@@ -64,11 +67,44 @@ const AppRoutes = () => {
       />
       
       <Route
+        path="/departments"
+        element={
+          <ProtectedRoute>
+            <Layout activePage="departments" onNavigate={handleNavigate}>
+              <DepartmentsPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      
+      <Route
         path="/upload"
         element={
           <ProtectedRoute>
             <Layout activePage="upload" onNavigate={handleNavigate}>
               <UploadPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      
+      <Route
+        path="/risk-members"
+        element={
+          <ProtectedRoute>
+            <Layout activePage="risk-members" onNavigate={handleNavigate}>
+              <RiskMembersPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      
+      <Route
+        path="/department-members"
+        element={
+          <ProtectedRoute>
+            <Layout activePage="departments" onNavigate={handleNavigate}>
+              <DepartmentMembersPage />
             </Layout>
           </ProtectedRoute>
         }

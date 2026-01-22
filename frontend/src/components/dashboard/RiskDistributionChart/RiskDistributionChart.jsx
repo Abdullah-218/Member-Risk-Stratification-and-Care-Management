@@ -1,21 +1,29 @@
 ﻿import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useNavigate } from 'react-router-dom';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import Card from '../../common/Card/Card';
 import styles from './RiskDistributionChart.module.css';
 
 function RiskDistributionChart() {
+  const navigate = useNavigate();
   const riskData = [
     { tier: 'Low', count: 56361, percentage: 45 },
-    { tier: 'Medium', count: 37629, percentage: 30 },
-    { tier: 'High', count: 25086, percentage: 20 },
+    { tier: 'Medium-Low', count: 28180, percentage: 22.5 },
+    { tier: 'Medium', count: 25000, percentage: 20 },
+    { tier: 'High', count: 15000, percentage: 12 },
     { tier: 'Critical', count: 6272, percentage: 5 },
   ];
 
   const colors = {
     'Low': '#10b981',
+    'Medium-Low': '#6ee7b7',
     'Medium': '#3b82f6',
     'High': '#f59e0b',
     'Critical': '#dc2626'
+  };
+
+  const handleBarClick = (tier) => {
+    navigate('/risk-members', { state: { riskTier: tier } });
   };
 
   return (
@@ -37,7 +45,16 @@ function RiskDistributionChart() {
                 }}
               />
               <Legend />
-              <Bar dataKey="count" fill="#2563eb" radius={[8, 8, 0, 0]} />
+              <Bar 
+                dataKey="count" 
+                radius={[8, 8, 0, 0]}
+                onClick={(data) => handleBarClick(data.tier)}
+                style={{ cursor: 'pointer' }}
+              >
+                {riskData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={colors[entry.tier]} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>

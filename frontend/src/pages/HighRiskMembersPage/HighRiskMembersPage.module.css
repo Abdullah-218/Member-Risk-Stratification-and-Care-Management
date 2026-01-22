@@ -57,3 +57,17 @@
   text-align: center;
   padding: 1.5rem 0;
 }
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  text-align: center;
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 1rem;
+  color: #6b7280;
+}

@@ -64,6 +64,17 @@ const ReportsPage = () => {
     ? reports
     : reports.filter(report => report.type === selectedFilter);
 
+  const handleDownloadReport = (report) => {
+    const filename = `${report.title.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().slice(0, 10)}.pdf`;
+    const element = document.createElement('a');
+    const file = new Blob([`Report: ${report.title}\n\n${report.description}\n\nGenerated: ${new Date().toISOString()}`], { type: 'text/plain' });
+    element.href = URL.createObjectURL(file);
+    element.download = filename;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -109,7 +120,7 @@ const ReportsPage = () => {
                 <span className={styles.date}>{new Date(report.date).toLocaleDateString()}</span>
                 <span className={styles.size}>{report.size}</span>
               </div>
-              <Button variant="primary" size="small">
+              <Button variant="primary" size="small" onClick={() => handleDownloadReport(report)}>
                 <Download size={16} />
                 Download
               </Button>

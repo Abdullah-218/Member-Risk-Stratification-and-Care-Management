@@ -20,7 +20,7 @@ const TrendAnalysis = () => {
   ];
 
   return (
-    <Card>
+    <Card id="trend-analysis">
       <div className={styles.container}>
         <h3 className={styles.title}>📈 Trend Analysis</h3>
         <div className={styles.chart}>

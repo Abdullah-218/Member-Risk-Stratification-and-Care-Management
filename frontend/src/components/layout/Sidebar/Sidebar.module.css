@@ -69,6 +69,183 @@
   flex-shrink: 0;
 }
 
+/* Departments Section */
+.departmentsContainer {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 2px solid #e5e7eb;
+}
+
+.departmentItem {
+  margin-bottom: 0.5rem;
+}
+
+.deptMenuButton {
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.deptLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.deptMemberCount {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.chevron {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: #6b7280;
+  transition: color 0.2s;
+}
+
+.deptMenuButton:hover .chevron {
+  color: #374151;
+}
+
+.riskBreakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-left: 0;
+  margin-top: 0.25rem;
+}
+
+.riskItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: #f3f4f6;
+  border: none;
+  border-left: 3px solid #d1d5db;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: #374151;
+  transition: all 0.2s;
+  justify-content: flex-start;
+  margin-left: 0.5rem;
+  font-weight: 500;
+}
+
+.riskItem:hover {
+  background-color: #e5e7eb;
+  border-left-color: #2563eb;
+}
+
+.riskBadge {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.riskLabel {
+  flex: 1;
+  font-weight: 500;
+}
+
+.riskNumber {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  padding: 0.125rem 0.5rem;
+  background-color: #fff;
+  border-radius: 0.25rem;
+}
+
+.riskItem.critical {
+  border-left-color: #dc2626;
+}
+
+.riskItem.high {
+  border-left-color: #f59e0b;
+}
+
+.riskItem.medium {
+  border-left-color: #3b82f6;
+}
+
+.riskItem.mediumLow {
+  border-left-color: #6ee7b7;
+}
+
+.riskItem.low {
+  border-left-color: #10b981;
+}
+
+/* Old styles to keep for reference - can be removed after testing */
+.departmentsSection {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 1rem;
+}
+
+.sectionTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+  padding: 0 0.5rem;
+}
+
+.departmentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.deptHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #374151;
+  transition: background-color 0.2s;
+  border-radius: 0.375rem;
+  text-align: left;
+}
+
+.deptHeader:hover {
+  background-color: #f3f4f6;
+}
+
+.deptInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.deptName {
+  font-weight: 600;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 10rem;
+}
+
+.memberCount {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  font-weight: 400;
+}
+
 @media (max-width: 768px) {
   .sidebarHeader {
     display: block;
@@ -108,5 +285,9 @@
   .sidebar.closed {
     width: 16rem;
     transform: translateX(-100%);
+  }
+
+  .departmentsSection {
+    display: none;
   }
 }

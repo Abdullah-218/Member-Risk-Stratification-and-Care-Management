@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, LogOut, Settings, Bell, Menu } from 'lucide-react';
+import { Activity, LogOut, Menu } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import Button from '../../common/Button/Button';
 import styles from './Header.module.css';
@@ -27,12 +27,6 @@ const Header = ({ onToggleSidebar }) => {
         
         {user && (
           <div className={styles.actions}>
-            <button className={styles.iconButton}>
-              <Bell size={20} />
-            </button>
-            <button className={styles.iconButton}>
-              <Settings size={20} />
-            </button>
             <div className={styles.userInfo}>
               <span className={styles.userName}>Welcome, {user.name}</span>
               <span className={styles.userRole}>{user.role}</span>

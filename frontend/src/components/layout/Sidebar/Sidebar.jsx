@@ -1,15 +1,18 @@
-import React from 'react';
-import { Home, Upload, AlertTriangle, BarChart3, FileText, Users } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Home, Upload, AlertTriangle, BarChart3, FileText, Users, Building2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useMembers } from '../../../context/MemberContext';
 import styles from './Sidebar.module.css';
 
 const Sidebar = ({ activePage, onNavigate, isOpen, onToggle }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { members } = useMembers();
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/dashboard' },
     { id: 'upload', label: 'Upload Data', icon: Upload, path: '/upload' },
+    { id: 'departments', label: 'Departments', icon: Building2, path: '/departments' },
     { id: 'high-risk', label: 'High-Risk Members', icon: AlertTriangle, path: '/high-risk-members' },
     { id: 'roi', label: 'ROI Tracking', icon: BarChart3, path: '/roi' },
     { id: 'reports', label: 'Reports', icon: FileText, path: '/reports' },

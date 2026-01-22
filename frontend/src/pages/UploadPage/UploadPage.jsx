@@ -2,6 +2,7 @@
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { useMembers } from '../../context/MemberContext';
+import { useNavigationHistory } from '../../context/NavigationHistoryContext';
 import Card from '../../components/common/Card/Card';
 import Button from '../../components/common/Button/Button';
 import DataSourceSelector from '../../components/upload/DataSourceSelector/DataSourceSelector';
@@ -24,6 +25,7 @@ const UploadPage = () => {
   
   const { addMembers } = useMembers();
   const navigate = useNavigate();
+  const { getPreviousPage } = useNavigationHistory();
 
   const handleFileSelect = (selectedFile) => {
     setFile(selectedFile);
@@ -46,13 +48,21 @@ const UploadPage = () => {
           setTimeout(() => {
             const mockMembers = generateMockMembers(100);
             addMembers(mockMembers);
-            navigate('/dashboard');
+            navigate(getPreviousPage());
           }, 500);
           return 100;
         }
         return prev + 10;
       });
     }, 500);
+  };
+
+  const handleBackClick = () => {
+    navigate(getPreviousPage());
+  };
+
+  const handleCancelClick = () => {
+    navigate(getPreviousPage());
   };
 
   if (processing) {
@@ -64,7 +74,7 @@ const UploadPage = () => {
       <Card className={styles.card}>
         <div className={styles.header}>
           <h2 className={styles.title}>📤 Upload Member Data</h2>
-          <Button variant="ghost" onClick={() => navigate('/dashboard')}>
+          <Button variant="ghost" onClick={handleBackClick}>
             <ChevronLeft size={16} /> Back
           </Button>
         </div>
@@ -88,7 +98,7 @@ const UploadPage = () => {
           )}
 
           <div className={styles.footer}>
-            <Button variant="secondary" onClick={() => navigate('/dashboard')}>
+            <Button variant="secondary" onClick={handleCancelClick}>
               Cancel
             </Button>
             <Button 

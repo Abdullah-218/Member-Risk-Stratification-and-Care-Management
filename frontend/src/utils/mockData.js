@@ -3,10 +3,16 @@ import { shapExplainer } from '../services/ml/shapExplainer';
 import { getRiskTier } from './riskCalculations';
 
 export const generateMockMembers = (count = 100) => {
+  const firstNames = ['James', 'Mary', 'Robert', 'Patricia', 'Michael', 'Jennifer', 'William', 'Linda', 'David', 'Barbara', 'Richard', 'Susan', 'Joseph', 'Jessica', 'Thomas', 'Sarah', 'Charles', 'Karen', 'Christopher', 'Nancy', 'Donald', 'Lisa', 'Matthew', 'Betty', 'Mark', 'Margaret', 'John', 'Sandra', 'Steven', 'Ashley', 'Paul'];
+  const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin', 'Perez', 'Lee', 'Thompson', 'White', 'Harris', 'Sanchez', 'Clark', 'Ramirez', 'Lewis', 'Robinson'];
   const conditions = ['Diabetes Type 2', 'CHF', 'Hypertension', 'COPD', 'CKD', 'Cancer'];
+  const departments = ['Cardiology', 'Orthopedics', 'Neurology', 'Oncology', 'Pulmonology', 'Nephrology'];
   const members = [];
   
   for (let i = 0; i < count; i++) {
+    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+    const name = `${firstName} ${lastName}`;
     const age = 60 + Math.floor(Math.random() * 20);
     const gender = Math.random() > 0.5 ? 'F' : 'M';
     const bmi = 22 + Math.random() * 18;
@@ -18,7 +24,9 @@ export const generateMockMembers = (count = 100) => {
     const edVisits = Math.floor(Math.random() * 6);
     const hospitalizations = Math.floor(Math.random() * 3);
     const medications = 3 + Math.floor(Math.random() * 10);
+    const department = departments[Math.floor(Math.random() * departments.length)];
     const memberData = {
+      name,
       age,
       gender,
       bmi,
@@ -29,7 +37,8 @@ export const generateMockMembers = (count = 100) => {
       conditions: memberConditions,
       edVisits,
       hospitalizations,
-      medications
+      medications,
+      department
     };
 
     const riskScore = riskCalculator.calculateOverallRisk(memberData);
