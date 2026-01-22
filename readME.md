@@ -1,75 +1,79 @@
 # 🏥 Healthcare Risk Stratification using Machine Learning
 
-A machine learning–based system to **predict health deterioration risk**, stratify members into actionable risk tiers, and support **proactive care management** for healthcare organizations and insurance payers.
+A comprehensive machine learning system to **predict health deterioration risk**, stratify patients into actionable risk tiers, explain AI predictions with SHAP, calculate ROI impact, and optimize models for healthcare organizations.
 
 ---
 
 ## 📌 Overview
 
-Healthcare systems often operate reactively, intervening only after a patient’s condition worsens. This leads to avoidable hospitalizations, increased costs, and poorer health outcomes.
+Healthcare systems need to identify high-risk patients early to enable proactive interventions, reduce avoidable hospitalizations, and optimize care spending.
 
 This project builds an **end-to-end ML pipeline** that:
-- Predicts risk of health deterioration
-- Stratifies members into 5 risk tiers
-- Explains *why* a member is high risk (Explainable AI)
-- Provides population-level risk insights
-
-The system is designed as a **decision-support tool** for healthcare organizations and care management teams.
+- ✅ Curates 15,000 stratified patients from raw CMS data
+- ✅ Engineers 27 clinically-relevant features
+- ✅ Creates 3 prediction models (30/60/90-day horizons)
+- ✅ Trains XGBoost models with strong predictive performance
+- ✅ Explains predictions with SHAP explainability
+- ✅ Calculates ROI and cost-benefit analysis
+- ✅ Optimizes models based on business constraints
 
 ---
 
 ## 🎯 Problem Statement
 
-> Build a machine learning system that predicts health deterioration risk for healthcare members, stratifies them into actionable risk tiers, explains key risk drivers, and enables proactive care management to reduce avoidable high-cost medical events.
+> Build an end-to-end ML system that predicts health deterioration risk across multiple time horizons, stratifies patients into actionable tiers, explains predictions with interpretable AI, calculates financial ROI, and optimizes models to balance prediction quality with business constraints.
 
 ---
 
-## 🧠 Solution Summary
+## 🧠 Solution Approach
 
-- Supervised ML models trained on historical healthcare data
-- Risk probability output (0–1)
-- Conversion into 5 actionable risk tiers
-- Explainability using SHAP
-- Population risk analytics for prioritization
+- **Data Processing**: Curate 15K patients from CMS beneficiary and claims data
+- **Feature Engineering**: Extract 27 features from demographics, diagnoses, utilization, and costs
+- **Target Creation**: Create hierarchical 30/60/90-day deterioration targets
+- **Model Training**: Train XGBoost models for each time horizon
+- **Explainability**: Use SHAP for global and patient-level interpretability
+- **ROI Analysis**: Calculate cost impact and financial ROI
+- **Model Optimization**: Fine-tune hyperparameters and select best performers
 
 ---
 
 ## 🏢 Target Users
 
-- Healthcare organizations  
-- Insurance companies (payers)  
-- Population health & care management teams  
-
-Patients benefit **indirectly** through early intervention.
-
----
-
-## 📊 Datasets Used
-
-- **CMS Synthetic Beneficiary Data (DE-SynPUF)**  
-- **Heart Disease UCI Dataset**
-- **Pima Indians Diabetes Dataset**
-
-All datasets are structured and suitable for supervised learning.
+- **Healthcare Organizations** – population health management
+- **Insurance/Payers** – risk stratification and care targeting
+- **Care Management Teams** – intervention prioritization
+- **Clinical Leaders** – evidence-based resource allocation
 
 ---
 
-## 🤖 Machine Learning Models
+## 📊 Data Sources
 
-- **Logistic Regression** – baseline, interpretable model
-- **XGBoost Classifier** – final high-performance model
+- **CMS DE-SynPUF Data** – Synthetic Medicare beneficiary & claims data
+  - Beneficiary Summary Files (2008-2009)
+  - Inpatient Claims
+  - Outpatient Claims
+- **Patient Population**: 15,000 stratified Medicare beneficiaries
 
-### Why XGBoost?
-- Excellent performance on tabular healthcare data
+---
+
+## 🤖 Machine Learning Approach
+
+### Model Selection: XGBoost Classifier
+- **Why?** Excellent for tabular healthcare data
 - Captures non-linear feature interactions
-- Produces calibrated probability scores
-- Works well with explainability (SHAP)
+- Produces well-calibrated probability scores
+- Compatible with SHAP explanations
+- Handles mixed feature types and missing values
+
+### Multi-Horizon Prediction
+- **30-day**: Critical acute events
+- **60-day**: Critical + high-risk events  
+- **90-day**: All deterioration signals
 
 ### Evaluation Metrics
-- Accuracy
-- Precision & Recall
-- ROC-AUC
-- Calibration analysis
+- **Classification**: Precision, Recall, F1-Score
+- **Ranking**: ROC-AUC, Average Precision
+- **Calibration**: Calibration curves, Hosmer-Lemeshow test
 
 ---
 
@@ -99,114 +103,360 @@ All datasets are structured and suitable for supervised learning.
 ```
 healthcare-risk-ml/
 │
-├── data/
+├── 📁 data/
 │   ├── raw/
 │   │   └── cms/
-│   │       ├── DE1_0_2008_Beneficiary_Summary_File_Sample_1.csv
-│   │       └── DE1_0_2009_Beneficiary_Summary_File_Sample_1.csv
+│   │       ├── beneficiary/           # Beneficiary summary files
+│   │       ├── inpatient/             # Inpatient claims
+│   │       └── outpatient/            # Outpatient claims
 │   │
 │   ├── processed/
-│   │   ├── cms_2008_featured.csv
-│   │   ├── cms_2009_featured.csv
-│   │   ├── training_data.csv
-│   │   ├── X_train.csv
-│   │   ├── X_test.csv
-│   │   ├── y_train.csv
-│   │   └── y_test.csv
+│   │   ├── curated_15k_patients.csv   # Final curated dataset (15,000 patients)
+│   │   ├── curated_patient_ids.csv    # Patient ID mapping
+│   │   ├── features_27.csv            # 27 engineered features
+│   │   ├── X_train.csv                # Training features (12,000 samples)
+│   │   ├── X_test.csv                 # Test features (3,000 samples)
+│   │   ├── y_30_train.csv             # 30-day target (train)
+│   │   ├── y_30_test.csv              # 30-day target (test)
+│   │   ├── y_60_train.csv             # 60-day target (train)
+│   │   ├── y_60_test.csv              # 60-day target (test)
+│   │   ├── y_90_train.csv             # 90-day target (train)
+│   │   └── y_90_test.csv              # 90-day target (test)
 │   │
 │   └── output/
-│       ├── evaluation_report.md
-│       ├── roc_curves.png
-│       ├── feature_importance.png
-│       ├── shap_summary.png
-│       ├── shap_waterfall_patient0.png
-│       ├── calibration_curve.png
-│       ├── precision_recall_curve.png
-│       └── risk_distribution.png
+│       ├── comparison/
+│       │   ├── executive_summary.txt              # Model comparison summary
+│       │   └── model_comparison_results.csv       # Detailed comparison metrics
+│       │
+│       ├── roi/
+│       │   ├── executive_summary.txt              # ROI analysis summary
+│       │   ├── patient_level_roi.csv              # Per-patient ROI metrics
+│       │   └── tier_roi_summary.csv               # Tier-level ROI summary
+│       │
+│       ├── roi_optimized/
+│       │   ├── executive_summary.txt              # Optimized model ROI
+│       │   ├── patient_level_roi.csv              # Optimized ROI metrics
+│       │   └── tier_summary.csv                   # Optimized tier summary
+│       │
+│       ├── shap/
+│       │   ├── explainability_report.txt          # SHAP analysis report
+│       │   ├── tier_analysis.csv                  # Risk tier patterns
+│       │   ├── global_feature_importance.png      # Global importance plot
+│       │   ├── summary_30_day.png                 # 30-day SHAP summary
+│       │   ├── summary_60_day.png                 # 60-day SHAP summary
+│       │   ├── summary_90_day.png                 # 90-day SHAP summary
+│       │   ├── dependence_plots.png               # Feature dependence plots
+│       │   ├── patient_explanation_1.png          # Patient 1 explanation
+│       │   ├── patient_explanation_2.png          # Patient 2 explanation
+│       │   └── ...                                # Additional patient explanations
+│       │
+│       ├── roc_curves_multiwindow.png             # ROC curves (30/60/90 days)
+│       └── feature_importance.png                 # XGBoost feature importance
 │
-├── models/
-│   ├── xgb_risk_model.pkl
-│   ├── lr_baseline_model.pkl
-│   ├── scaler.pkl
-│   ├── feature_names.pkl
-│   └── shap_explainer.pkl
+├── 📁 models/
+│   ├── xgb_model_30_day.pkl            # 30-day XGBoost model
+│   ├── xgb_model_60_day.pkl            # 60-day XGBoost model
+│   ├── xgb_model_90_day.pkl            # 90-day XGBoost model
+│   ├── feature_names.pkl               # Feature name mapping
+│   ├── model_performance.pkl           # Performance metrics
+│   ├── shap_explainer_30_day.pkl       # SHAP explainer (30-day)
+│   ├── shap_explainer_60_day.pkl       # SHAP explainer (60-day)
+│   └── shap_explainer_90_day.pkl       # SHAP explainer (90-day)
 │
-├── src/
-│   ├── 01_data_loading.py
-│   ├── 02_feature_engineering.py
-│   ├── 03_target_creation.py
-│   ├── 04_model_training.py
-│   ├── 05_shap_explainer.py
-│   └── 06_model_evaluation.py
+├── 📁 src/
+│   ├── 01_create_curated_dataset.py     # Data loading & curation (15K patients)
+│   ├── 02_feature_engineering.py        # Feature extraction (27 features)
+│   ├── 03_create_targets.py             # Target variable creation (30/60/90-day)
+│   ├── 04_train_models.py               # Model training (3 XGBoost models)
+│   ├── 05_shap_explainer.py             # SHAP explanations & visualizations
+│   ├── 06_roi_calculator.py             # ROI & financial impact analysis
+│   ├── 07_model_comparison_and_optimization.py  # Compare & optimize models
+│   ├── 08_roi_with_best_models.py       # ROI with optimized models
+│   ├── 09_final_hyperparameter_tuning.py # Hyperparameter optimization
+│   
 │
-├── requirements.txt
-├── run_pipeline.py
-└── README.md
+├── 📁 hackathon_dept/                   # Python virtual environment
+│   ├── bin/                             # Executables (python, pip, etc.)
+│   ├── lib/                             # Site packages
+│   ├── include/                         # Headers
+│   └── pyvenv.cfg                       # Environment config
+│
+│
+├── 📄 run_pipeline.py                   # Main pipeline orchestrator
+├── 📄 requirements.txt                  # Python dependencies
+└── 📄 README.md                         # This file
 ```
 
 ---
 
-## ⚙️ Setup Instructions
+## 🔧 Setup Instructions
 
-### 1️⃣ Create Virtual Environment
+### Prerequisites
+- Python 3.8+
+- macOS/Linux/Windows
+- ~2GB disk space for data & models
+
+### Step 1: Create Virtual Environment
+
+```bash
+python3 -m venv hackathon_dept
+source hackathon_dept/bin/activate  # On Windows: hackathon_dept\Scripts\activate
 ```
-python -m venv hackathon_dept
-source hackathon_dept/bin/activate
+
+### Step 2: Install Dependencies
+
+```bash
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-##🚀 Execution
+### Step 3: Verify Installation
 
+```bash
+python -c "import xgboost, shap, pandas; print('✅ All packages installed')"
 ```
-Option 1: Run Full Pipeline :
+
+---
+
+## 🚀 Execution
+
+### Option 1: Run Full Pipeline (Recommended)
+
+```bash
+# From project root directory
 python run_pipeline.py
+```
 
-Option 2: Run Step-by-Step :
-python src/01_data_loading.py
+This executes all 9 steps sequentially:
+1. ✅ Creates 15K curated dataset
+2. ✅ Engineers 27 features
+3. ✅ Creates 30/60/90-day targets
+4. ✅ Trains 3 XGBoost models
+5. ✅ Generates SHAP explanations
+6. ✅ Calculates ROI metrics
+7. ✅ Compares & optimizes models
+8. ✅ Calculates optimized ROI
+9. ✅ Final hyperparameter tuning
+
+**Output**: `pipeline.log` + all artifacts in `data/output/`
+
+---
+
+### Option 2: Run Step-by-Step
+
+Execute scripts individually in sequence:
+
+```bash
+# Step 1: Create curated dataset (15,000 patients)
+python src/01_create_curated_dataset.py
+# Output: data/processed/curated_15k_patients.csv
+
+# Step 2: Feature engineering (27 features)
 python src/02_feature_engineering.py
-python src/03_target_creation.py
-python src/04_model_training.py
+# Output: data/processed/features_27.csv
+
+# Step 3: Create targets (30/60/90-day)
+python src/03_create_targets.py
+# Output: data/processed/y_*_train.csv, y_*_test.csv
+
+# Step 4: Train models (XGBoost)
+python src/04_train_models.py
+# Output: models/xgb_model_*.pkl
+
+# Step 5: SHAP explanations
 python src/05_shap_explainer.py
-python src/06_model_evaluation.py
+# Output: data/output/shap/*.png, *.csv
 
+# Step 6: ROI analysis
+python src/06_roi_calculator.py
+# Output: data/output/roi/executive_summary.txt
+
+# Step 7: Model comparison & optimization
+python src/07_model_comparison_and_optimization.py
+# Output: data/output/comparison/model_comparison_results.csv
+
+# Step 8: ROI with optimized models
+python src/08_roi_with_best_models.py
+# Output: data/output/roi_optimized/executive_summary.txt
+
+# Step 9: Hyperparameter tuning
+python src/09_final_hyperparameter_tuning.py
+# Output: Final optimized models
 ```
 
-### ✅ What You Get After Execution
+---
 
+## 📊 Expected Results
+
+### Data Pipeline
 ```
-Trained Models :
+✅ 15,000 stratified patients
+   - Tier 1: 5,250 patients (Low risk)
+   - Tier 2: 4,500 patients
+   - Tier 3: 3,000 patients
+   - Tier 4: 1,500 patients
+   - Tier 5: 750 patients (High risk)
 
-models/
-├── xgb_risk_model.pkl
-├── lr_baseline_model.pkl
-├── scaler.pkl
-├── feature_names.pkl
-└── shap_explainer.pkl
-
-Evaluation Outputs :
-
-data/output/
-├── evaluation_report.md
-├── roc_curves.png
-├── feature_importance.png
-├── shap_summary.png
-├── calibration_curve.png
-├── precision_recall_curve.png
-└── risk_distribution.png
-
+✅ 27 engineered features
+   - Demographics: 5 features
+   - Chronic conditions: 10 features
+   - Utilization: 6 features
+   - Costs: 4 features
+   - Derived metrics: 2 features
 ```
 
-###⭐ Key Highlights
-	•	End-to-end ML pipeline
-	•	Explainable AI using SHAP
-	•	Population health analytics
-	•	Hackathon-ready & reproducible
-	•	Industry-aligned healthcare use case
+### Model Performance
+```
+30-Day Model:
+  ROC-AUC: 0.69 | Avg Precision: 0.23 | Positive Rate: 6.3%
 
+60-Day Model:
+  ROC-AUC: 0.70 | Avg Precision: 0.33 | Positive Rate: 14.8%
 
-###🔮 Future Enhancements
-	•	Real-time API (FastAPI / Node.js)
-	•	Temporal risk prediction (30/60/90 days)
-	•	Cost impact & ROI modeling
-	•	Patient engagement module
-	•	FHIR-based EHR integration (conceptual)
+90-Day Model:
+  ROC-AUC: 0.76 | Avg Precision: 0.55 | Positive Rate: 27.3%
+```
+
+### Key Risk Drivers
+```
+Top 10 Features by Importance:
+  1. Total annual cost (highest impact)
+  2. Cost percentile
+  3. Ischemic heart disease
+  4. Total inpatient costs
+  5. Diabetes diagnosis
+  6. High-cost user indicator
+  7. Frailty score
+  8. Recent admission
+  9. Complexity index
+  10. ESRD diagnosis
+```
+
+### Outputs Generated
+```
+📊 Visualizations:
+   ✅ ROC curves (30/60/90-day comparison)
+   ✅ Feature importance plots
+   ✅ SHAP summary plots (3 models)
+   ✅ Patient-level SHAP explanations (5 examples)
+   ✅ Dependence plots
+   ✅ Risk tier analysis
+
+📄 Reports:
+   ✅ Model comparison summary
+   ✅ SHAP explainability report
+   ✅ ROI analysis (original & optimized)
+   ✅ Executive summaries
+
+📋 Data Files:
+   ✅ Patient-level predictions & ROI
+   ✅ Tier-level aggregations
+   ✅ Risk tier patterns
+```
+
+---
+
+## 🔍 Model Details
+
+### XGBoost Configuration
+```python
+max_depth: 6-8
+learning_rate: 0.1
+n_estimators: 100-200
+subsample: 0.8
+colsample_bytree: 0.8
+scale_pos_weight: Dynamic (based on class imbalance)
+```
+
+### Class Imbalance Handling
+- Dynamic `scale_pos_weight` based on target distribution
+- Stratified train-test splits
+- Evaluation via ROC-AUC & Average Precision
+
+### Explainability: SHAP
+- **Global**: Feature importance across population
+- **Patient-level**: Individual prediction breakdowns
+- **Group-level**: Risk tier pattern analysis
+
+---
+
+## 💰 ROI Calculation
+
+### Metrics
+- **Sensitivity @ Specificity**: Identify true positives at fixed specificity
+- **Cost Avoidance**: Assumed intervention cost vs. prevented event cost
+- **Net ROI**: Cost savings minus intervention costs
+- **Tier-Level Aggregation**: Total organizational impact
+
+### Assumptions
+- Intervention cost: $2,000 per patient
+- Prevented event cost: $25,000 per patient
+- Risk threshold: Model-specific based on optimization
+
+---
+
+## ⭐ Key Features
+
+- ✅ **End-to-End Pipeline** – Data ingestion to predictions
+- ✅ **Multi-Horizon Prediction** – 30/60/90-day risk forecasting
+- ✅ **Explainable AI** – SHAP for interpretability
+- ✅ **ROI Analysis** – Financial impact quantification
+- ✅ **Model Optimization** – Hyperparameter tuning & comparison
+- ✅ **Population Analytics** – Tier-level insights
+- ✅ **Production-Ready** – Modular, logged, error-handled
+- ✅ **Reproducible** – Fixed seeds & documented steps
+
+---
+
+## 🔮 Future Enhancements
+
+### Short-term
+- [ ] REST API (FastAPI) for real-time predictions
+- [ ] Patient-facing dashboard
+- [ ] Retraining pipeline for data drift detection
+- [ ] A/B testing framework
+
+### Medium-term
+- [ ] Temporal models (LSTM/Transformers)
+- [ ] Real-time streaming predictions
+- [ ] Integration with EHR systems (FHIR)
+- [ ] Cost optimization via reinforcement learning
+
+### Long-term
+- [ ] Federated learning across organizations
+- [ ] Causal inference for intervention design
+- [ ] Patient engagement module
+- [ ] Outcome tracking & feedback loops
+
+---
+
+## 📚 References
+
+### Data
+- CMS DE-SynPUF: https://www.cms.gov/Research-Statistics-Data-and-Systems/Downloadable-Public-Use-Files/SynPUF/Overview
+
+### Methods
+- XGBoost: https://arxiv.org/abs/1603.02754
+- SHAP: https://arxiv.org/abs/1705.07874
+- Healthcare ML: https://arxiv.org/abs/1901.08387
+
+---
+
+## 📞 Support
+
+For issues or questions:
+1. Check `pipeline.log` for error details
+2. Verify all input data files exist in `data/raw/`
+3. Ensure Python 3.8+ and all dependencies installed
+4. Review individual script docstrings for implementation details
+
+---
+
+## 📝 License
+
+This project is provided as-is for educational and research purposes.
+
+---
+
+**Last Updated**: January 2026  
+**Status**: ✅ Production Ready
