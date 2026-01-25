@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+# run_pipeline.py
+
 """
 Healthcare Risk ML Pipeline Runner
 Orchestrates all pipeline steps from data processing to model optimization.
@@ -24,33 +25,44 @@ logger = logging.getLogger(__name__)
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent
 SRC_DIR = PROJECT_ROOT / 'src'
+EVALUATION_DIR = PROJECT_ROOT / 'evaluation'
+DATA_DIR = PROJECT_ROOT / 'data'
+MODELS_DIR = PROJECT_ROOT / 'models'
 
-# Define pipeline steps
+# Ensure data and models directories exist
+DATA_DIR.mkdir(exist_ok=True)
+(DATA_DIR / 'raw').mkdir(exist_ok=True)
+(DATA_DIR / 'processed').mkdir(exist_ok=True)
+(DATA_DIR / 'output').mkdir(exist_ok=True)
+MODELS_DIR.mkdir(exist_ok=True)
+
+# Define pipeline steps: (folder, script_name, description)
 PIPELINE_STEPS = [
-    ('01_create_curated_dataset.py', 'Creating curated dataset'),
-    ('02_feature_engineering.py', 'Performing feature engineering'),
-    ('03_create_targets.py', 'Creating target variables'),
-    ('04_train_models.py', 'Training models'),
-    ('05_shap_explainer.py', 'Generating SHAP explanations'),
-    ('06_roi_calculator.py', 'Calculating ROI metrics'),
-    ('07_model_comparison_and_optimization.py', 'Comparing and optimizing models'),
-    ('08_roi_with_best_models.py', 'Calculating ROI with best models'),
-    ('09_final_hyperparameter_tuning.py', 'Final hyperparameter tuning'),
+    # Data preparation steps (src/)
+    (SRC_DIR, '01_create_curated_dataset.py', 'Creating curated dataset'),
+    (SRC_DIR, '02_feature_engineering.py', 'Performing feature engineering'),
+    (SRC_DIR, '03_create_targets.py', 'Creating target variables'),
+    (SRC_DIR, '04_model_train_test.py', 'Training and testing models'),
+    
+    # Evaluation and analysis steps (evaluation/)
+    (EVALUATION_DIR, '01_shap_explainer.py', 'Generating SHAP explanations'),
+    (EVALUATION_DIR, '02_roi_calculation.py', 'Calculating ROI metrics'),
 ]
 
 
-def run_script(script_name: str, description: str) -> bool:
+def run_script(script_folder: Path, script_name: str, description: str) -> bool:
     """
     Run a single pipeline script.
     
     Args:
+        script_folder: Folder containing the script (src/ or evaluation/)
         script_name: Name of the script to run
         description: Description of what the script does
         
     Returns:
         True if successful, False otherwise
     """
-    script_path = SRC_DIR / script_name
+    script_path = script_folder / script_name
     
     if not script_path.exists():
         logger.error(f"Script not found: {script_path}")
@@ -59,11 +71,16 @@ def run_script(script_name: str, description: str) -> bool:
     logger.info(f"{'='*60}")
     logger.info(f"Step: {description}")
     logger.info(f"Running: {script_name}")
+    logger.info(f"Location: {script_folder.name}/")
     logger.info(f"{'='*60}")
+    
+    # Use the project's virtual environment Python
+    venv_python = PROJECT_ROOT / 'hackathon_dept' / 'bin' / 'python'
+    python_executable = str(venv_python) if venv_python.exists() else sys.executable
     
     try:
         result = subprocess.run(
-            [sys.executable, str(script_path)],
+            [python_executable, str(script_path)],
             cwd=PROJECT_ROOT,
             check=True,
             capture_output=False
@@ -82,12 +99,16 @@ def main():
     """Run the complete pipeline."""
     logger.info(f"Starting Healthcare Risk ML Pipeline")
     logger.info(f"Project root: {PROJECT_ROOT}")
+    logger.info(f"Source directory: {SRC_DIR}")
+    logger.info(f"Evaluation directory: {EVALUATION_DIR}")
+    logger.info(f"Data directory: {DATA_DIR}")
+    logger.info(f"Models directory: {MODELS_DIR}")
     
     failed_steps = []
     successful_steps = []
     
-    for script_name, description in PIPELINE_STEPS:
-        if run_script(script_name, description):
+    for script_folder, script_name, description in PIPELINE_STEPS:
+        if run_script(script_folder, script_name, description):
             successful_steps.append(script_name)
         else:
             failed_steps.append(script_name)

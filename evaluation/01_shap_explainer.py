@@ -1,4 +1,4 @@
-# src/05_shap_explainer.py
+# evaluation/01_shap_explainer.py
 
 import pandas as pd
 import numpy as np
@@ -33,10 +33,28 @@ class SHAPExplainer:
         print("LOADING MODELS AND DATA")
         print("="*60)
         
-        # Load models
-        self.models['30_day'] = joblib.load('models/xgb_model_30_day.pkl')
-        self.models['60_day'] = joblib.load('models/xgb_model_60_day.pkl')
-        self.models['90_day'] = joblib.load('models/xgb_model_90_day.pkl')
+        # Load models (extract from dict structure)
+        model_30 = joblib.load('models/best_30_day_model.pkl')
+        model_60 = joblib.load('models/best_60_day_model.pkl')
+        model_90 = joblib.load('models/best_90_day_model.pkl')
+        
+        # Extract actual model objects from dictionaries
+        m30 = model_30['model'] if isinstance(model_30, dict) else model_30
+        m60 = model_60['model'] if isinstance(model_60, dict) else model_60
+        m90 = model_90['model'] if isinstance(model_90, dict) else model_90
+        
+        # If model is CalibratedClassifierCV, extract the base estimator
+        from sklearn.calibration import CalibratedClassifierCV
+        self.models['30_day'] = m30.estimator if isinstance(m30, CalibratedClassifierCV) else m30
+        self.models['60_day'] = m60.estimator if isinstance(m60, CalibratedClassifierCV) else m60
+        self.models['90_day'] = m90.estimator if isinstance(m90, CalibratedClassifierCV) else m90
+        
+        # Store calibrated models for predictions (need probability calibration)
+        self.calibrated_models = {
+            '30_day': m30,
+            '60_day': m60,
+            '90_day': m90
+        }
         
         # Load test data
         self.X_test = pd.read_csv('data/processed/X_test.csv')
@@ -70,6 +88,12 @@ class SHAPExplainer:
             # Calculate SHAP values for test set
             print(f"  Calculating SHAP values for {len(self.X_test)} samples...")
             shap_values = explainer.shap_values(self.X_test)
+            
+            # Handle binary classification - shap_values returns list of 2 arrays
+            # We want the positive class (index 1)
+            if isinstance(shap_values, list):
+                shap_values = shap_values[1]
+            
             self.shap_values[window_name] = shap_values
             
             print(f"  ✅ {window_name}: SHAP values shape {shap_values.shape}")
@@ -145,7 +169,7 @@ class SHAPExplainer:
         print("="*60)
         
         # Focus on 30-day model (most critical)
-        model = self.models['30_day']
+        model = self.calibrated_models['30_day']
         shap_vals = self.shap_values['30_day']
         
         # Get predictions
@@ -166,10 +190,20 @@ class SHAPExplainer:
             
             # Create waterfall plot
             plt.figure(figsize=(10, 6))
+            
+            # Get expected value (base value) - handle if it's an array
+            expected_val = self.explainers['30_day'].expected_value
+            if isinstance(expected_val, list):
+                expected_val = expected_val[1]
+            elif isinstance(expected_val, np.ndarray):
+                if expected_val.ndim > 0:
+                    expected_val = expected_val[1] if len(expected_val) > 1 else expected_val[0]
+            expected_val = float(expected_val)
+            
             shap.waterfall_plot(
                 shap.Explanation(
                     values=shap_vals[idx],
-                    base_values=self.explainers['30_day'].expected_value,
+                    base_values=expected_val,
                     data=self.X_test.iloc[idx].values,
                     feature_names=self.feature_names
                 ),
@@ -191,7 +225,7 @@ class SHAPExplainer:
         print("="*60)
         
         # Use 30-day model predictions to create tiers
-        model = self.models['30_day']
+        model = self.calibrated_models['30_day']
         pred_proba = model.predict_proba(self.X_test)[:, 1]
         
         # Stratify into 5 tiers

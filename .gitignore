@@ -58,6 +58,8 @@ logs/
 config/secrets.yaml
 config/*.key
 config/*.json
+catboost_info/
+/catboost_info
 
 # ===============================
 # Experiment artifacts
