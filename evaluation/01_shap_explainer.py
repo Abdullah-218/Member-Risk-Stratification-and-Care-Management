@@ -69,14 +69,22 @@ class SHAPExplainer:
         print(f"  ✅ Test set: {self.X_test.shape}")
         print(f"  ✅ Features: {len(self.feature_names)}")
     
-    def create_shap_explainers(self):
+    def create_shap_explainers(self, sample_size=500):
         """Create SHAP explainers for each model"""
         print("\n" + "="*60)
         print("CREATING SHAP EXPLAINERS")
         print("="*60)
         
-        # Use a sample of test data for background (TreeExplainer is fast, but we'll use 100 samples)
-        background = shap.sample(self.X_test, 100, random_state=42)
+        # Use a sample of test data for faster computation
+        if len(self.X_test) > sample_size:
+            print(f"  Sampling {sample_size} patients from {len(self.X_test)} test samples...")
+            X_sample = shap.sample(self.X_test, sample_size, random_state=42)
+        else:
+            X_sample = self.X_test
+            print(f"  Using all {len(self.X_test)} test samples...")
+        
+        # Store sample for later use
+        self.X_sample = X_sample
         
         for window_name, model in self.models.items():
             print(f"\n  Creating explainer for {window_name}...")
@@ -85,9 +93,9 @@ class SHAPExplainer:
             explainer = shap.TreeExplainer(model)
             self.explainers[window_name] = explainer
             
-            # Calculate SHAP values for test set
-            print(f"  Calculating SHAP values for {len(self.X_test)} samples...")
-            shap_values = explainer.shap_values(self.X_test)
+            # Calculate SHAP values for sample
+            print(f"  Calculating SHAP values for {len(X_sample)} samples...")
+            shap_values = explainer.shap_values(X_sample)
             
             # Handle binary classification - shap_values returns list of 2 arrays
             # We want the positive class (index 1)
@@ -149,7 +157,7 @@ class SHAPExplainer:
             plt.figure(figsize=(10, 8))
             shap.summary_plot(
                 self.shap_values[window_name],
-                self.X_test,
+                self.X_sample,
                 feature_names=self.feature_names,
                 show=False,
                 max_display=20
@@ -172,8 +180,8 @@ class SHAPExplainer:
         model = self.calibrated_models['30_day']
         shap_vals = self.shap_values['30_day']
         
-        # Get predictions
-        pred_proba = model.predict_proba(self.X_test)[:, 1]
+        # Get predictions on sample
+        pred_proba = model.predict_proba(self.X_sample)[:, 1]
         
         # Find top 5 highest risk patients
         high_risk_indices = np.argsort(pred_proba)[-n_samples:][::-1]
@@ -182,7 +190,7 @@ class SHAPExplainer:
         
         for i, idx in enumerate(high_risk_indices):
             risk_score = pred_proba[idx]
-            actual_outcome = self.y_30_test[idx]
+            actual_outcome = self.y_30_test.iloc[idx] if hasattr(self.y_30_test, 'iloc') else self.y_30_test[idx]
             
             print(f"\n  Patient {i+1}:")
             print(f"    Risk Score: {risk_score:.1%}")
@@ -204,7 +212,7 @@ class SHAPExplainer:
                 shap.Explanation(
                     values=shap_vals[idx],
                     base_values=expected_val,
-                    data=self.X_test.iloc[idx].values,
+                    data=self.X_sample.iloc[idx].values,
                     feature_names=self.feature_names
                 ),
                 show=False
@@ -224,12 +232,12 @@ class SHAPExplainer:
         print("ANALYZING RISK TIER PATTERNS")
         print("="*60)
         
-        # Use 30-day model predictions to create tiers
+        # Use 30-day model predictions on sample to create tiers
         model = self.calibrated_models['30_day']
-        pred_proba = model.predict_proba(self.X_test)[:, 1]
+        pred_proba = model.predict_proba(self.X_sample)[:, 1]
         
         # Stratify into 5 tiers
-        self.X_test['risk_tier'] = pd.cut(
+        self.X_sample['risk_tier'] = pd.cut(
             pred_proba,
             bins=[0, 0.10, 0.25, 0.50, 0.75, 1.0],
             labels=[1, 2, 3, 4, 5]
@@ -241,7 +249,7 @@ class SHAPExplainer:
         tier_analysis = []
         
         for tier in [1, 2, 3, 4, 5]:
-            tier_mask = self.X_test['risk_tier'] == tier
+            tier_mask = self.X_sample['risk_tier'] == tier
             tier_shap = shap_vals[tier_mask]
             
             if len(tier_shap) > 0:
@@ -271,7 +279,7 @@ class SHAPExplainer:
         print("\n  ✅ Saved: data/output/shap/tier_analysis.csv")
         
         # Remove temporary column
-        self.X_test.drop('risk_tier', axis=1, inplace=True)
+        self.X_sample.drop('risk_tier', axis=1, inplace=True)
     
     def create_dependence_plots(self):
         """Create SHAP dependence plots for top features"""
@@ -295,7 +303,7 @@ class SHAPExplainer:
             shap.dependence_plot(
                 feature,
                 shap_vals,
-                self.X_test,
+                self.X_sample,
                 feature_names=self.feature_names,
                 show=False,
                 ax=ax
@@ -355,10 +363,10 @@ class SHAPExplainer:
         # Print to console
         print("\n" + '\n'.join(report_lines))
     
-    def run_full_analysis(self):
+    def run_full_analysis(self, sample_size=500):
         """Execute complete SHAP analysis pipeline"""
         self.load_models_and_data()
-        self.create_shap_explainers()
+        self.create_shap_explainers(sample_size=sample_size)
         self.plot_global_importance()
         self.plot_summary_plots()
         self.explain_high_risk_patients()
@@ -372,7 +380,10 @@ class SHAPExplainer:
 
 if __name__ == "__main__":
     explainer = SHAPExplainer()
-    explainer.run_full_analysis()
+    
+    # Use smaller sample for faster execution (can be increased for more detailed analysis)
+    sample_size = 500  # Reduced from 3000 for faster execution
+    explainer.run_full_analysis(sample_size=sample_size)
     
     print("\n" + "="*60)
     print("✅ SHAP EXPLAINABILITY ANALYSIS COMPLETE!")
