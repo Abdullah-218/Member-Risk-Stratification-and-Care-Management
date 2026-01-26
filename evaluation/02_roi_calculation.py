@@ -4,8 +4,13 @@
 ROI ANALYSIS WITH OPTIMIZED BEST MODELS
 ========================================
 
+CORRECTED VERSION - TIME-SCALED INTERVENTION COSTS
+
 Uses the best-performing models from comparison analysis
 with optimized thresholds for maximum business impact
+
+KEY FIX: ROI calculations now use time-scaled intervention costs
+         that match the prediction window (30/60/90 days)
 """
 
 import pandas as pd
@@ -19,29 +24,30 @@ import random
 class OptimizedROICalculator:
     """
     Calculate ROI using best models and optimized thresholds
+    WITH CORRECTED TIME-SCALED COSTS
     """
     
     def __init__(self):
-        # Controlled random success rate ranges for realistic variability
-        # Using deterministic random seed for reproducible hackathon results
-        # Higher tiers have higher expected ROI ranges to show risk stratification value
-        # Ranges adjusted to ensure positive ROI for ALL tiers with decimal precision for hackathon
-        self.success_rate_ranges = {
-            1: (0.28, 0.42),    # Tier 1: 28% - 42% (monitoring baseline - varied ROI 0-5%)
-            2: (0.52, 0.68),    # Tier 2: 52% - 68% (early intervention - varied ROI 5-15%)
-            3: (0.68, 0.82),    # Tier 3: 68% - 82% (moderate intervention - varied ROI 15-30%)
-            4: (0.78, 0.88),    # Tier 4: 78% - 88% (intensive intervention - varied ROI 30-60%)
-            5: (0.82, 0.92)     # Tier 5: 82% - 92% (critical intervention - varied ROI 40-85%)
+        # TIME-SCALED intervention costs by tier (30-day window only in this file)
+        # These align with the 30-day prediction window
+        # For 60/90-day analysis, use separate scripts or parameterize
+        self.intervention_costs = {
+            1: 0,       # Tier 1: Monitor only
+            2: 150,     # Tier 2: $100-200 range, using midpoint
+            3: 400,     # Tier 3: $300-500 range, using midpoint
+            4: 700,     # Tier 4: $600-800 range, using midpoint
+            5: 900      # Tier 5: $800-1000 range, using midpoint
         }
         
-        # Fixed intervention costs by tier (adjusted for positive population ROI)
-        # Lower costs to ensure positive ROI while maintaining 85% cap constraint
-        self.intervention_costs = {
-            1: 0,      # Tier 1: Monitor only
-            2: 400,    # Tier 2: Light intervention
-            3: 1000,   # Tier 3: Moderate intervention
-            4: 1800,   # Tier 4: Intensive intervention (reduced for positive ROI)
-            5: 3000    # Tier 5: Critical intervention
+        # Window-specific success rate ranges (30-day window)
+        # Controlled randomness for realistic patient-level variability
+        # Each patient gets unique but reproducible rate within their tier's range
+        self.success_rate_ranges = {
+            1: (0.03, 0.08),    # Tier 1: 3% - 8% (minimal monitoring)
+            2: (0.10, 0.20),    # Tier 2: 10% - 20% (low intervention)
+            3: (0.25, 0.40),    # Tier 3: 25% - 40% (moderate intervention)
+            4: (0.30, 0.50),    # Tier 4: 30% - 50% (intensive intervention)
+            5: (0.40, 0.60)     # Tier 5: 40% - 60% (critical intervention)
         }
         
         # Fixed random seed for reproducible hackathon demonstrations
@@ -113,15 +119,24 @@ class OptimizedROICalculator:
                   f"Avg Risk: {avg_risk:.3f} | Actual: {actual_rate:.1f}%")
     
     def calculate_roi_comparison(self):
-        """Calculate ROI using controlled random success rates for realistic variability"""
+        """
+        Calculate ROI using TIME-SCALED intervention costs
+        
+        CORRECTED Logic:
+        - Uses 30-day intervention costs (not annual)
+        - Uses 30-day projected costs (aligned time window)
+        - ROI capped at 100% maximum (realistic constraint)
+        - Controlled random success rates for variability
+        """
         print("\n" + "="*70)
-        print("ROI CALCULATION (OPTIMIZED VS BASELINE)")
+        print("ROI CALCULATION (TIME-SCALED COSTS)")
         print("="*70)
         
-        # Add intervention costs by tier
+        # Add TIME-SCALED intervention costs by tier (30-day window)
         self.results['intervention_cost'] = self.results['risk_tier'].map(self.intervention_costs)
         
         # Calculate projected cost for 30-day window (proportional to annual cost)
+        # NOW ALIGNED with 30-day intervention costs
         self.results['projected_30_day_cost'] = self.results['total_annual_cost'] * (30/365)
         
         # Apply controlled random success rates by tier
@@ -130,7 +145,7 @@ class OptimizedROICalculator:
             tier = row['risk_tier']
             min_rate, max_rate = self.success_rate_ranges[tier]
             # Use patient ID as additional seed for variability while maintaining reproducibility
-            patient_seed = 42 + int(row['patient_id']) if 'patient_id' in row else 42
+            patient_seed = 42 + int(row['patient_id'])
             random.seed(patient_seed)
             return random.uniform(min_rate, max_rate)
         
@@ -139,31 +154,38 @@ class OptimizedROICalculator:
         # Apply exact ROI formula as specified
         self.results['expected_savings'] = self.results['projected_30_day_cost'] * self.results['success_rate']
         self.results['net_benefit'] = self.results['expected_savings'] - self.results['intervention_cost']
-        self.results['roi_percent'] = (self.results['net_benefit'] / self.results['intervention_cost'] * 100).fillna(0)
         
-        # Cap ROI at 85% maximum as per constraints
-        self.results['roi_percent'] = self.results['roi_percent'].clip(upper=85.0)
+        # Calculate ROI percent with 100% cap (realistic constraint)
+        self.results['roi_percent'] = (
+            self.results['net_benefit'] / self.results['intervention_cost'] * 100
+        ).fillna(0)
         
-        # Aggregate
+        # Cap ROI at 100% maximum - no patient should have >100% ROI (unrealistic)
+        self.results['roi_percent'] = self.results['roi_percent'].clip(upper=100.0)
+        
+        # Aggregate by tier
         tier_roi = self.results.groupby('risk_tier').agg({
             'patient_id': 'count',
             'intervention_cost': 'sum',
             'expected_savings': 'sum',
             'net_benefit': 'sum',
             'actual_deterioration': 'mean',
-            'total_annual_cost': 'mean'
+            'total_annual_cost': 'mean',
+            'projected_30_day_cost': 'mean',
+            'success_rate': 'mean'
         }).round(2)
         
         tier_roi.columns = ['Patients', 'Intervention Cost', 'Expected Savings', 
                            'Net Benefit', 'Actual Deterioration Rate', 
-                           'Avg Base Cost']
+                           'Avg Annual Cost', 'Avg 30-Day Cost', 'Avg Success Rate']
         
+        # Calculate tier-level ROI
         tier_roi['ROI (%)'] = (
             (tier_roi['Expected Savings'] - tier_roi['Intervention Cost']) / 
             tier_roi['Intervention Cost'] * 100
         ).round(1)
         
-        print("\n  ROI by Tier:")
+        print("\n  ROI by Tier (TIME-SCALED):")
         print(tier_roi)
         
         # Overall metrics
@@ -172,7 +194,7 @@ class OptimizedROICalculator:
         total_net = tier_roi['Net Benefit'].sum()
         overall_roi = (total_net / total_intervention * 100) if total_intervention > 0 else 0
         
-        print(f"\n  Overall Program:")
+        print(f"\n  Overall Program (30-Day Window):")
         print(f"    Total Intervention: ${total_intervention:,.2f}")
         print(f"    Expected Savings: ${total_savings:,.2f}")
         print(f"    Net Benefit: ${total_net:,.2f}")
@@ -199,7 +221,7 @@ class OptimizedROICalculator:
         ax1.set_yticks(range(len(roi_values)))
         ax1.set_yticklabels([f'Tier {i}' for i in range(1, 6)])
         ax1.set_xlabel('ROI (%)', fontsize=11)
-        ax1.set_title(f'ROI by Tier - {self.model_name}', fontsize=12, fontweight='bold')
+        ax1.set_title(f'ROI by Tier (Time-Scaled) - {self.model_name}', fontsize=12, fontweight='bold')
         ax1.axvline(0, color='black', linewidth=0.8)
         ax1.grid(axis='x', alpha=0.3)
         
@@ -226,19 +248,19 @@ class OptimizedROICalculator:
         ax2.legend()
         ax2.grid(axis='y', alpha=0.3)
         
-        # 3. Cost Analysis
+        # 3. Cost Analysis (Time-Scaled)
         ax3 = axes[1, 0]
         
         x = np.arange(1, 6)
         intervention = self.tier_roi['Intervention Cost'].values
         savings = self.tier_roi['Expected Savings'].values
         
-        ax3.bar(x, intervention, label='Intervention Cost', color='#ff9800', alpha=0.8)
+        ax3.bar(x, intervention, label='30-Day Intervention Cost', color='#ff9800', alpha=0.8)
         ax3.bar(x, savings, label='Expected Savings', color='#4caf50', alpha=0.8)
         
         ax3.set_xlabel('Risk Tier', fontsize=11)
         ax3.set_ylabel('Amount ($)', fontsize=11)
-        ax3.set_title('Cost-Benefit Analysis by Tier', fontsize=12, fontweight='bold')
+        ax3.set_title('Cost-Benefit Analysis by Tier (30-Day)', fontsize=12, fontweight='bold')
         ax3.legend()
         ax3.grid(axis='y', alpha=0.3)
         
@@ -251,7 +273,7 @@ class OptimizedROICalculator:
         ax4.bar(range(1, 6), net_benefits, color=colors_nb, alpha=0.8)
         ax4.set_xlabel('Risk Tier', fontsize=11)
         ax4.set_ylabel('Net Benefit ($)', fontsize=11)
-        ax4.set_title('Net Benefit by Tier', fontsize=12, fontweight='bold')
+        ax4.set_title('Net Benefit by Tier (30-Day)', fontsize=12, fontweight='bold')
         ax4.axhline(0, color='black', linewidth=0.8)
         ax4.grid(axis='y', alpha=0.3)
         
@@ -284,6 +306,22 @@ class OptimizedROICalculator:
         report.append(f"Selected Model: {self.model_name}")
         report.append(f"Optimized Threshold: {self.optimal_threshold:.3f}")
         report.append(f"Total Patients: {len(self.results):,}")
+        report.append(f"Prediction Window: 30 days")
+        report.append("")
+        
+        report.append("CORRECTED ROI LOGIC")
+        report.append("-"*70)
+        report.append("✓ TIME-SCALED intervention costs (30-day, not annual)")
+        report.append("✓ Costs aligned: 30-day intervention vs 30-day projected savings")
+        report.append("✓ ROI capped at 100% maximum (realistic constraint)")
+        report.append("✓ Success rates: 3%-60% by tier (controlled randomness)")
+        report.append("")
+        
+        report.append("INTERVENTION COSTS (30-DAY WINDOW)")
+        report.append("-"*70)
+        for tier, cost in self.intervention_costs.items():
+            tier_label = {1: 'Normal', 2: 'Low', 3: 'Moderate', 4: 'High', 5: 'Critical'}[tier]
+            report.append(f"  Tier {tier} ({tier_label:<10}): ${cost:>4}")
         report.append("")
         
         report.append("RISK STRATIFICATION RESULTS")
@@ -299,7 +337,7 @@ class OptimizedROICalculator:
                          f"Actual Deterioration: {actual_rate:.1f}%")
         report.append("")
         
-        report.append("FINANCIAL IMPACT")
+        report.append("FINANCIAL IMPACT (30-DAY WINDOW)")
         report.append("-"*70)
         report.append(f"Overall Program ROI: {self.overall_roi:.1f}%")
         report.append(f"Total Net Benefit: ${self.total_net:,.2f}")
@@ -307,10 +345,19 @@ class OptimizedROICalculator:
         
         report.append("TIER-SPECIFIC ROI")
         report.append("-"*70)
-        for tier in [5, 4, 3, 2]:
+        for tier in [5, 4, 3, 2, 1]:
             roi = self.tier_roi.loc[tier, 'ROI (%)']
-            tier_label = {2: 'Low', 3: 'Moderate', 4: 'High', 5: 'Critical'}[tier]
-            report.append(f"  Tier {tier} ({tier_label:<10}): {roi:>6.1f}%")
+            tier_label = {1: 'Normal', 2: 'Low', 3: 'Moderate', 4: 'High', 5: 'Critical'}[tier]
+            status = "✓ Positive" if roi > 0 else "✗ Negative"
+            report.append(f"  Tier {tier} ({tier_label:<10}): {roi:>6.1f}% {status}")
+        report.append("")
+        
+        report.append("KEY INSIGHTS")
+        report.append("-"*70)
+        report.append("• Higher tiers (4-5) should show positive ROI with corrected logic")
+        report.append("• Lower tiers (1-2) may have negative ROI (acceptable - monitoring only)")
+        report.append("• Time-scaling ensures costs match intervention timeframe")
+        report.append("• 100% ROI cap prevents unrealistic returns")
         report.append("")
         
         report.append("="*70)
@@ -341,5 +388,5 @@ if __name__ == "__main__":
     calculator.run_analysis()
     
     print("\n" + "="*70)
-    print("✅ OPTIMIZED ROI ANALYSIS COMPLETE!")
+    print("✅ OPTIMIZED ROI ANALYSIS COMPLETE (TIME-SCALED)!")
     print("="*70)

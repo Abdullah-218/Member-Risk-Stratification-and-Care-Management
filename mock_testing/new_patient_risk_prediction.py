@@ -4,12 +4,17 @@
 NEW PATIENT RISK PREDICTION WITH 3-WINDOW ROI PROJECTION
 =========================================================
 
+CORRECTED VERSION - TIME-SCALED INTERVENTION COSTS
+
 For patients NEW to the platform (not in database):
 1. Accept patient demographics, conditions, and cost data
 2. Predict risk and tier for 30, 60, 90-day windows
 3. Project costs and losses across 3 windows
-4. Calculate ROI if intervention is taken within each window
+4. Calculate ROI if intervention is taken within each window (TIME-SCALED)
 5. Generate detailed patient risk report
+
+KEY FIX: ROI calculations now use time-scaled intervention costs
+         that match the prediction window (30/60/90 days)
 """
 
 import pandas as pd
@@ -26,42 +31,56 @@ class NewPatientRiskPredictor:
     def __init__(self):
         Path('data/output/new_patient_analysis').mkdir(parents=True, exist_ok=True)
         
-        # Controlled random success rate ranges for realistic variability
-        # Using deterministic random seed for reproducible hackathon results
-        # Higher tiers have higher expected ROI ranges to show risk stratification value
-        # Ranges adjusted to ensure positive ROI for ALL tiers with decimal precision for hackathon
-        self.success_rate_ranges = {
+        # TIME-SCALED intervention costs by window and tier
+        # These are proportional costs for the specific time window, NOT annual costs
+        self.intervention_costs = {
             '30_day': {
-                1: (0.28, 0.42),    # Tier 1: 28% - 42% (monitoring baseline - varied ROI 0-5%)
-                2: (0.52, 0.68),    # Tier 2: 52% - 68% (early intervention - varied ROI 5-15%)
-                3: (0.68, 0.82),    # Tier 3: 68% - 82% (moderate intervention - varied ROI 15-30%)
-                4: (0.78, 0.88),    # Tier 4: 78% - 88% (intensive intervention - varied ROI 30-60%)
-                5: (0.82, 0.92)     # Tier 5: 82% - 92% (critical intervention - varied ROI 40-85%)
+                1: 0,       # Tier 1: Monitor only
+                2: 150,     # Tier 2: $100-200 range, using midpoint
+                3: 400,     # Tier 3: $300-500 range, using midpoint
+                4: 700,     # Tier 4: $600-800 range, using midpoint
+                5: 900      # Tier 5: $800-1000 range, using midpoint
             },
             '60_day': {
-                1: (0.38, 0.52),    # Tier 1: 38% - 52% (extended monitoring - varied ROI 0-8%)
-                2: (0.62, 0.78),    # Tier 2: 62% - 78% (early intervention - varied ROI 8-20%)
-                3: (0.78, 0.88),    # Tier 3: 78% - 88% (moderate intervention - varied ROI 20-40%)
-                4: (0.82, 0.92),    # Tier 4: 82% - 92% (intensive intervention - varied ROI 40-70%)
-                5: (0.86, 0.94)     # Tier 5: 86% - 94% (critical intervention - varied ROI 50-85%)
+                1: 0,       # Tier 1: Monitor only
+                2: 250,     # Tier 2: $200-300 range, using midpoint
+                3: 700,     # Tier 3: $600-800 range, using midpoint
+                4: 1100,    # Tier 4: $1000-1200 range, using midpoint
+                5: 1650     # Tier 5: $1500-1800 range, using midpoint
             },
             '90_day': {
-                1: (0.48, 0.62),    # Tier 1: 48% - 62% (long-term monitoring - varied ROI 0-12%)
-                2: (0.68, 0.84),    # Tier 2: 68% - 84% (early intervention - varied ROI 12-30%)
-                3: (0.82, 0.92),    # Tier 3: 82% - 92% (moderate intervention - varied ROI 30-60%)
-                4: (0.86, 0.94),    # Tier 4: 86% - 94% (intensive intervention - varied ROI 50-85%)
-                5: (0.90, 0.98)     # Tier 5: 90% - 98% (critical intervention - varied ROI 60-85%)
+                1: 0,       # Tier 1: Monitor only
+                2: 350,     # Tier 2: $300-400 range, using midpoint
+                3: 1050,    # Tier 3: $900-1200 range, using midpoint
+                4: 1550,    # Tier 4: $1400-1700 range, using midpoint
+                5: 1900     # Tier 5: $1800-2000 range, using midpoint
             }
         }
         
-        # Fixed intervention costs by tier (adjusted for positive population ROI)
-        # Lower costs to ensure positive ROI while maintaining 85% cap constraint
-        self.intervention_costs = {
-            1: 0,      # Tier 1: Monitor only
-            2: 400,    # Tier 2: Light intervention
-            3: 1000,   # Tier 3: Moderate intervention
-            4: 1800,   # Tier 4: Intensive intervention (reduced for positive ROI)
-            5: 3000    # Tier 5: Critical intervention
+        # Window-specific success rate ranges (controlled randomness for variability)
+        # Higher tiers = higher success rates (better ROI when intervention is applied)
+        self.success_rate_ranges = {
+            '30_day': {
+                1: (0.03, 0.08),    # Tier 1: 3% - 8% (minimal monitoring)
+                2: (0.10, 0.20),    # Tier 2: 10% - 20% (low intervention)
+                3: (0.25, 0.40),    # Tier 3: 25% - 40% (moderate intervention)
+                4: (0.30, 0.50),    # Tier 4: 30% - 50% (intensive intervention)
+                5: (0.40, 0.60)     # Tier 5: 40% - 60% (critical intervention)
+            },
+            '60_day': {
+                1: (0.10, 0.25),    # Tier 1: 10% - 25% (extended monitoring)
+                2: (0.25, 0.40),    # Tier 2: 25% - 40% (early intervention)
+                3: (0.35, 0.55),    # Tier 3: 35% - 55% (moderate intervention)
+                4: (0.45, 0.65),    # Tier 4: 45% - 65% (intensive intervention)
+                5: (0.55, 0.75)     # Tier 5: 55% - 75% (critical intervention)
+            },
+            '90_day': {
+                1: (0.20, 0.35),    # Tier 1: 20% - 35% (long-term monitoring)
+                2: (0.35, 0.50),    # Tier 2: 35% - 50% (early intervention)
+                3: (0.45, 0.60),    # Tier 3: 45% - 60% (moderate intervention)
+                4: (0.60, 0.80),    # Tier 4: 60% - 80% (intensive intervention)
+                5: (0.70, 0.90)     # Tier 5: 70% - 90% (critical intervention)
+            }
         }
         
         # Fixed random seed for reproducible hackathon demonstrations
@@ -95,7 +114,7 @@ class NewPatientRiskPredictor:
         """Load pre-trained models and feature configuration"""
         
         print("\n" + "="*70)
-        print("LOADING TRAINED MODELS")
+        print("LOADING TRAINED MODELS (CORRECTED TIME-SCALED VERSION)")
         print("="*70 + "\n")
         
         try:
@@ -110,6 +129,7 @@ class NewPatientRiskPredictor:
             X_train = pd.read_csv('data/processed/X_train.csv')
             self.feature_names = X_train.columns.tolist()
             print(f"  ✅ Loaded {len(self.feature_names)} feature definitions")
+            print(f"  ✅ Using TIME-SCALED ROI calculation (100% cap)")
             print()
             
         except Exception as e:
@@ -121,12 +141,14 @@ class NewPatientRiskPredictor:
         """Display welcome message"""
         print("\n" + "="*70)
         print("🏥 NEW PATIENT RISK PREDICTION & ROI ANALYSIS")
+        print("   (TIME-SCALED INTERVENTION COSTS)")
         print("="*70)
         print("\nThis tool helps new patients understand their:")
         print("  • Risk level across 30, 60, and 90-day windows")
         print("  • Risk tier based on ML model predictions")
-        print("  • Projected costs and intervention benefits")
+        print("  • Projected costs and intervention benefits (TIME-ALIGNED)")
         print("  • ROI if interventions are taken within each window")
+        print("  • ROI capped at 100% maximum (realistic constraint)")
         print()
     
     def get_patient_input_interactive(self):
@@ -311,7 +333,13 @@ class NewPatientRiskPredictor:
     def calculate_3_window_projection(self, patient_data, predictions):
         """
         Calculate projected costs and ROI across 3 windows
-        using controlled random success rates for realistic variability
+        using TIME-SCALED intervention costs and window-specific success rates
+        
+        CORRECTED Logic:
+        - Uses TIME-SCALED intervention costs (30/60/90 day proportional)
+        - Uses window-specific success rate ranges
+        - ROI capped at 100% maximum (realistic constraint)
+        - Costs and savings aligned to same time window
         """
         
         base_cost = patient_data['total_annual_cost']
@@ -330,23 +358,30 @@ class NewPatientRiskPredictor:
             risk_score = window_data['risk_score']
             
             # Project cost for the time window (proportional to annual cost)
+            # NOW ALIGNED with time-scaled intervention costs
             projected_cost = (base_cost * days) / 365
             
             # Get controlled random success rate for this tier and window
             # Uses deterministic seed for reproducible hackathon results
             min_rate, max_rate = self.success_rate_ranges[window_key][tier]
+            # Use window and tier as seed for reproducibility
+            patient_seed = 42 + hash(window_key) % 100 + tier * 10
+            random.seed(patient_seed)
             success_rate = random.uniform(min_rate, max_rate)
             
-            # Get fixed intervention cost for this tier
-            intervention_cost = self.intervention_costs[tier]
+            # Get TIME-SCALED intervention cost for this window and tier
+            intervention_cost = self.intervention_costs[window_key][tier]
             
             # Apply exact ROI formula as specified
             expected_savings = projected_cost * success_rate
             net_benefit = expected_savings - intervention_cost
-            roi_percent = ((net_benefit / intervention_cost) * 100) if intervention_cost > 0 else 0
             
-            # Cap ROI at 85% maximum as per constraints
-            roi_percent = min(roi_percent, 85.0)
+            # Calculate ROI with 100% cap (realistic constraint)
+            if intervention_cost > 0:
+                roi_percent = (net_benefit / intervention_cost) * 100
+                roi_percent = min(roi_percent, 100.0)  # Cap at 100% max
+            else:
+                roi_percent = 0
             
             projection[window_key] = {
                 'label': label,
@@ -369,7 +404,7 @@ class NewPatientRiskPredictor:
         """Display comprehensive patient risk report"""
         
         print("\n" + "="*70)
-        print("PATIENT RISK ASSESSMENT REPORT")
+        print("PATIENT RISK ASSESSMENT REPORT (TIME-SCALED ROI)")
         print("="*70)
         print(f"Generated: {datetime.now().strftime('%B %d, %Y at %H:%M:%S')}\n")
         
@@ -404,7 +439,7 @@ class NewPatientRiskPredictor:
         print()
         
         # Detailed window projections
-        print("DETAILED WINDOW PROJECTIONS & ROI ANALYSIS")
+        print("DETAILED WINDOW PROJECTIONS & ROI ANALYSIS (TIME-SCALED)")
         print("="*70)
         
         for window_key in ['30_day', '60_day', '90_day']:
@@ -419,11 +454,11 @@ class NewPatientRiskPredictor:
             print(f"     Projected Cost: ${proj['projected_cost']:,.2f}")
             print(f"     Success Rate: {proj['success_rate']*100:.1f}% (Range: {proj['success_rate_range']})")
             print()
-            print(f"  🏥 Intervention Impact (Tier {proj['tier']} Program):")
-            print(f"     Intervention Cost: ${proj['intervention_cost']:,.2f}")
+            print(f"  🏥 Intervention Impact (Tier {proj['tier']} Program - {proj['days']}-day):")
+            print(f"     Intervention Cost: ${proj['intervention_cost']:,.2f} ({proj['days']}-day scaled)")
             print(f"     Expected Savings: ${proj['expected_savings']:,.2f}")
             print(f"     Net Benefit: ${proj['net_benefit']:,.2f}")
-            print(f"     ROI: {proj['roi_percent']:.1f}%")
+            print(f"     ROI: {proj['roi_percent']:.1f}% (capped at 100%)")
             
             if proj['roi_percent'] > 0:
                 print(f"     ✅ POSITIVE ROI - Intervention is financially beneficial")
@@ -431,13 +466,16 @@ class NewPatientRiskPredictor:
                 print(f"     ⚠️  NEGATIVE ROI - Monitor before intervention")
         
         print("\n" + "="*70)
+        print("NOTE: All costs are TIME-SCALED to match prediction windows")
+        print("      ROI calculations use realistic constraints (100% max)")
+        print("="*70)
     
     def save_patient_report(self, patient_id, patient_data, predictions, projection):
         """Save detailed patient report to file"""
         
         report = []
         report.append("="*70)
-        report.append("NEW PATIENT RISK ASSESSMENT REPORT")
+        report.append("NEW PATIENT RISK ASSESSMENT REPORT (TIME-SCALED ROI)")
         report.append("="*70)
         report.append(f"Patient ID: {patient_id}")
         report.append(f"Generated: {datetime.now().strftime('%B %d, %Y at %H:%M:%S')}")
@@ -460,7 +498,7 @@ class NewPatientRiskPredictor:
             report.append("")
         
         # Risk Summary
-        report.append("RISK SUMMARY - 3 WINDOW ANALYSIS")
+        report.append("RISK SUMMARY - 3 WINDOW ANALYSIS (TIME-SCALED)")
         report.append("-"*70)
         
         for window_key in ['30_day', '60_day', '90_day']:
@@ -468,11 +506,11 @@ class NewPatientRiskPredictor:
             report.append(f"\n{proj['label'].upper()}")
             report.append(f"  Risk Score: {proj['risk_score']:.4f}")
             report.append(f"  Risk Tier: {proj['tier']}/5 - {proj['tier_label']}")
-            report.append(f"  Projected Cost: ${proj['projected_cost']:,.2f}")
-            report.append(f"  Intervention Cost: ${proj['intervention_cost']:,.2f}")
+            report.append(f"  Projected Cost: ${proj['projected_cost']:,.2f} ({proj['days']}-day)")
+            report.append(f"  Intervention Cost: ${proj['intervention_cost']:,.2f} ({proj['days']}-day scaled)")
             report.append(f"  Expected Savings: ${proj['expected_savings']:,.2f}")
             report.append(f"  Net Benefit: ${proj['net_benefit']:,.2f}")
-            report.append(f"  ROI: {proj['roi_percent']:.1f}%")
+            report.append(f"  ROI: {proj['roi_percent']:.1f}% (capped at 100%)")
         
         report.append("\n" + "="*70)
         report.append("CLINICAL RECOMMENDATIONS")
@@ -493,6 +531,13 @@ class NewPatientRiskPredictor:
             report.append("✅ RECOMMENDED ACTION: Continue routine care, follow-up in 3 months")
         
         report.append("\n" + "="*70)
+        report.append("METHODOLOGY NOTES")
+        report.append("-"*70)
+        report.append("• All intervention costs are TIME-SCALED to match prediction windows")
+        report.append("• ROI calculations use realistic constraints (100% maximum)")
+        report.append("• Success rates vary by tier and window duration")
+        report.append("• Costs aligned: X-day projected cost vs X-day intervention cost")
+        report.append("="*70)
         
         report_text = '\n'.join(report)
         
@@ -511,6 +556,8 @@ class NewPatientRiskPredictor:
         output = {
             'patient_id': str(patient_id),
             'timestamp': datetime.now().isoformat(),
+            'methodology': 'time_scaled_roi',
+            'roi_cap': 100.0,
             'patient_profile': patient_data,
             'risk_predictions': {
                 window: {
@@ -525,6 +572,8 @@ class NewPatientRiskPredictor:
                     'days': proj['days'],
                     'projected_cost': float(proj['projected_cost']),
                     'intervention_cost': float(proj['intervention_cost']),
+                    'intervention_cost_type': f"{proj['days']}-day time-scaled",
+                    'success_rate': float(proj['success_rate']),
                     'expected_savings': float(proj['expected_savings']),
                     'net_benefit': float(proj['net_benefit']),
                     'roi_percent': float(proj['roi_percent'])
@@ -558,7 +607,7 @@ class NewPatientRiskPredictor:
         # Predict risk across windows
         predictions = self.predict_risk_windows(patient_features)
         
-        # Calculate 3-window projection
+        # Calculate 3-window projection (TIME-SCALED)
         projection = self.calculate_3_window_projection(patient_data, predictions)
         
         # Display report
@@ -620,7 +669,7 @@ def main():
             return
     
     print("\n" + "="*70)
-    print("✅ NEW PATIENT RISK ANALYSIS COMPLETE!")
+    print("✅ NEW PATIENT RISK ANALYSIS COMPLETE (TIME-SCALED ROI)!")
     print("="*70)
     print(f"Reports saved to: data/output/new_patient_analysis/\n")
 
