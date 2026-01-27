@@ -24,7 +24,6 @@ const Step4HealthMetrics = ({ data, onUpdate }) => {
             value={metrics.totalInpatientCost}
             onChange={(e) => handleChange('totalInpatientCost', e.target.value)}
             placeholder="0"
-            required
           />
           <Input
             label="Cost Percentile (0-100)"
@@ -32,7 +31,6 @@ const Step4HealthMetrics = ({ data, onUpdate }) => {
             value={metrics.costPercentile}
             onChange={(e) => handleChange('costPercentile', e.target.value)}
             placeholder="50"
-            required
           />
           <div className={styles.selectGroup}>
             <label className={styles.label}>High Cost Patient (Top 20%)</label>
@@ -40,7 +38,6 @@ const Step4HealthMetrics = ({ data, onUpdate }) => {
               value={metrics.highCostPatientTop20}
               onChange={(e) => handleChange('highCostPatientTop20', e.target.value)}
               className={styles.select}
-              required
             >
               <option value="no">No</option>
               <option value="yes">Yes</option>
@@ -52,7 +49,6 @@ const Step4HealthMetrics = ({ data, onUpdate }) => {
             value={metrics.frailtyScore}
             onChange={(e) => handleChange('frailtyScore', e.target.value)}
             placeholder="0.1"
-            required
           />
         </div>
 
@@ -63,7 +59,6 @@ const Step4HealthMetrics = ({ data, onUpdate }) => {
             value={metrics.complexityIndex}
             onChange={(e) => handleChange('complexityIndex', e.target.value)}
             placeholder="0.1"
-            required
           />
         </div>
       </div>

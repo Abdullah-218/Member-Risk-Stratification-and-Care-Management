@@ -13,7 +13,6 @@ const REPORT_STORAGE_KEY = 'assessmentReport';
 const AssessmentReportPage = () => {
   const navigate = useNavigate();
   const [patientEmail, setPatientEmail] = useState('');
-  const [doctorEmail, setDoctorEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
 
@@ -308,8 +307,8 @@ const AssessmentReportPage = () => {
   const handleSubmitAssessment = async () => {
     if (!reportData) return;
 
-    if (!patientEmail || !doctorEmail) {
-      setSubmitMessage('Please enter both patient and doctor email addresses.');
+    if (!patientEmail) {
+      setSubmitMessage('Please enter the patient email address.');
       return;
     }
 
@@ -320,8 +319,7 @@ const AssessmentReportPage = () => {
       const submitResult = await onSubmitAssessment({
         ...reportData,
         recipients: {
-          patientEmail,
-          doctorEmail
+          patientEmail
         }
       });
 
@@ -332,7 +330,6 @@ const AssessmentReportPage = () => {
 
       const sendResult = await sendAssessmentReport({
         patientEmail,
-        doctorEmail,
         reportData
       });
 
@@ -608,14 +605,6 @@ const AssessmentReportPage = () => {
                 value={patientEmail}
                 onChange={(e) => setPatientEmail(e.target.value)}
                 placeholder="patient@example.com"
-                required
-              />
-              <Input
-                label="Doctor Email"
-                type="email"
-                value={doctorEmail}
-                onChange={(e) => setDoctorEmail(e.target.value)}
-                placeholder="doctor@hospital.com"
                 required
               />
             </div>

@@ -24,7 +24,6 @@ const Step1Demographics = ({ data, onUpdate }) => {
             value={demographics.age}
             onChange={(e) => handleChange('age', e.target.value)}
             placeholder=""
-            required
           />
 
           <div className={styles.selectGroup}>
@@ -33,7 +32,6 @@ const Step1Demographics = ({ data, onUpdate }) => {
               value={demographics.gender}
               onChange={(e) => handleChange('gender', e.target.value)}
               className={styles.select}
-              required
             >
               <option value="">Select Gender</option>
               <option value="male">Male</option>
@@ -48,7 +46,6 @@ const Step1Demographics = ({ data, onUpdate }) => {
             value={demographics.annualHealthcareCost}
             onChange={(e) => handleChange('annualHealthcareCost', e.target.value)}
             placeholder=""
-            required
           />
         </div>
       </div>

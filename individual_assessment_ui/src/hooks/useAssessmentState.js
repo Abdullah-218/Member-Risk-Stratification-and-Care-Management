@@ -156,41 +156,14 @@ const useAssessmentState = () => {
   const validateStep = useCallback((step) => {
     switch (step) {
       case 1:
-        const { age, gender, annualHealthcareCost } = assessmentData.demographics;
-        return age && gender && annualHealthcareCost !== '';
+        return true;
       case 2:
         // Conditions are optional, always valid
         return true;
       case 3:
-        const {
-          hospitalAdmissions,
-          totalHospitalDays,
-          daysSinceLastAdmission,
-          recentAdmissionPast30Days,
-          outpatientVisits,
-          highOutpatientUser,
-          erEdVisits,
-          specialistVisits
-        } = assessmentData.utilization;
-        return (
-          hospitalAdmissions !== '' &&
-          totalHospitalDays !== '' &&
-          daysSinceLastAdmission !== '' &&
-          recentAdmissionPast30Days !== '' &&
-          outpatientVisits !== '' &&
-          highOutpatientUser !== '' &&
-          erEdVisits !== '' &&
-          specialistVisits !== ''
-        );
+        return true;
       case 4:
-        const { totalInpatientCost, costPercentile, highCostPatientTop20, frailtyScore, complexityIndex } = assessmentData.metrics;
-        return (
-          totalInpatientCost !== '' &&
-          costPercentile !== '' &&
-          highCostPatientTop20 !== '' &&
-          frailtyScore !== '' &&
-          complexityIndex !== ''
-        );
+        return true;
       case 5:
         // Review step is always valid
         return true;

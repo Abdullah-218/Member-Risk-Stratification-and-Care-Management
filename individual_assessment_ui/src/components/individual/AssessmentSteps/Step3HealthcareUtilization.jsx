@@ -24,7 +24,6 @@ const Step3HealthcareUtilization = ({ data, onUpdate }) => {
             value={utilization.hospitalAdmissions}
             onChange={(e) => handleChange('hospitalAdmissions', e.target.value)}
             placeholder="0"
-            required
           />
           <Input
             label="Total Hospital Days"
@@ -32,7 +31,6 @@ const Step3HealthcareUtilization = ({ data, onUpdate }) => {
             value={utilization.totalHospitalDays}
             onChange={(e) => handleChange('totalHospitalDays', e.target.value)}
             placeholder="0"
-            required
           />
           <Input
             label="Days Since Last Admission"
@@ -40,7 +38,6 @@ const Step3HealthcareUtilization = ({ data, onUpdate }) => {
             value={utilization.daysSinceLastAdmission}
             onChange={(e) => handleChange('daysSinceLastAdmission', e.target.value)}
             placeholder="365"
-            required
           />
           <div className={styles.selectGroup}>
             <label className={styles.label}>Recent Admission (Past 30 days)</label>
@@ -48,7 +45,6 @@ const Step3HealthcareUtilization = ({ data, onUpdate }) => {
               value={utilization.recentAdmissionPast30Days}
               onChange={(e) => handleChange('recentAdmissionPast30Days', e.target.value)}
               className={styles.select}
-              required
             >
               <option value="no">No</option>
               <option value="yes">Yes</option>
@@ -63,7 +59,6 @@ const Step3HealthcareUtilization = ({ data, onUpdate }) => {
             value={utilization.outpatientVisits}
             onChange={(e) => handleChange('outpatientVisits', e.target.value)}
             placeholder="0"
-            required
           />
           <div className={styles.selectGroup}>
             <label className={styles.label}>High Outpatient User (&gt;12 visits)</label>
@@ -71,7 +66,6 @@ const Step3HealthcareUtilization = ({ data, onUpdate }) => {
               value={utilization.highOutpatientUser}
               onChange={(e) => handleChange('highOutpatientUser', e.target.value)}
               className={styles.select}
-              required
             >
               <option value="no">No</option>
               <option value="yes">Yes</option>
@@ -83,7 +77,6 @@ const Step3HealthcareUtilization = ({ data, onUpdate }) => {
             value={utilization.erEdVisits}
             onChange={(e) => handleChange('erEdVisits', e.target.value)}
             placeholder="0"
-            required
           />
           <Input
             label="Specialist Visits"
@@ -91,7 +84,6 @@ const Step3HealthcareUtilization = ({ data, onUpdate }) => {
             value={utilization.specialistVisits}
             onChange={(e) => handleChange('specialistVisits', e.target.value)}
             placeholder="0"
-            required
           />
         </div>
       </div>

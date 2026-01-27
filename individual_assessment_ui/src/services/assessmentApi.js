@@ -71,8 +71,7 @@ export const onSubmitAssessment = async (submissionData) => {
     assessmentId: 'ASMT-' + Date.now(),
     submittedAt: new Date().toISOString(),
     emailStatus: {
-      patient: 'queued',
-      doctor: 'queued'
+      patient: 'queued'
     },
     message: 'Assessment submitted successfully. Email notifications have been queued.'
   };
@@ -103,23 +102,22 @@ export const sendAssessmentEmail = async (emailData) => {
 };
 
 /**
- * Send the assessment report to both patient and doctor
+ * Send the assessment report to the patient
  * @param {Object} params
  * @param {string} params.patientEmail
- * @param {string} params.doctorEmail
  * @param {Object} params.reportData
  * @returns {Promise<Object>}
  */
-export const sendAssessmentReport = async ({ patientEmail, doctorEmail, reportData }) => {
+export const sendAssessmentReport = async ({ patientEmail, reportData }) => {
   // TODO: Replace with actual API call
   // const response = await fetch('/api/send-assessment-report', {
   //   method: 'POST',
   //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({ patientEmail, doctorEmail, reportData })
+  //   body: JSON.stringify({ patientEmail, reportData })
   // });
   // return response.json();
 
-  console.log('SEND REPORT API CALL - Patient:', patientEmail, 'Doctor:', doctorEmail);
+  console.log('SEND REPORT API CALL - Patient:', patientEmail);
   console.log('SEND REPORT API CALL - Report data:', reportData);
 
   return {
@@ -127,8 +125,7 @@ export const sendAssessmentReport = async ({ patientEmail, doctorEmail, reportDa
     messageId: 'RPT-' + Date.now(),
     sentAt: new Date().toISOString(),
     recipients: {
-      patientEmail,
-      doctorEmail
+      patientEmail
     }
   };
 };
