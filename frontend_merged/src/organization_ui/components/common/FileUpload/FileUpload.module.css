@@ -1,0 +1,33 @@
+﻿.container {
+  width: 100%;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.dropZone {
+  border: 2px dashed #d1d5db;
+  border-radius: 0.5rem;
+  padding: 3rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dropZone:hover {
+  border-color: #2563eb;
+  background-color: #eff6ff;
+}
+
+.icon {
+  width: 3rem;
+  height: 3rem;
+  color: #9ca3af;
+  margin: 0 auto 1rem;
+}
+
+.text {
+  color: #6b7280;
+  font-size: 0.875rem;
+}

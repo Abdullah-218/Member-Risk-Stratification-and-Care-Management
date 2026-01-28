@@ -1,0 +1,51 @@
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(1200px 600px at 15% 20%, rgba(20, 184, 166, 0.15) 0%, rgba(20, 184, 166, 0) 60%),
+    radial-gradient(900px 500px at 85% 30%, rgba(14, 165, 233, 0.15) 0%, rgba(14, 165, 233, 0) 55%),
+    linear-gradient(135deg, #f8fafc 0%, #e2e8f0 40%, #cbd5e1 100%);
+  position: relative;
+}
+
+.layout::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(99, 102, 241, 0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(99, 102, 241, 0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(99, 102, 241, 0.1)"/><circle cx="10" cy="50" r="0.5" fill="rgba(99, 102, 241, 0.1)"/><circle cx="90" cy="30" r="0.5" fill="rgba(99, 102, 241, 0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+  pointer-events: none;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  margin-left: 16rem;
+  transition: margin-left 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.main.sidebarClosed {
+  margin-left: 5rem;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 768px) {
+  .main {
+    margin-left: 0;
+  }
+
+  .main.sidebarClosed {
+    margin-left: 0;
+  }
+}
