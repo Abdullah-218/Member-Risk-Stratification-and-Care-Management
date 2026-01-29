@@ -77,10 +77,6 @@ const FileUploadZone = ({ onFileSelect, selectedFile }) => {
           <div className={styles.requirementText}>
             ✓ Required columns: patient_id, age, gender, conditions, utilization, lab_results
           </div>
-          <button className={styles.templateLink}>
-            <Download size={14} />
-            Download Sample Template
-          </button>
         </div>
       </div>
     </div>

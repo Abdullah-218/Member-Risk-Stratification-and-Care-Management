@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import React, { useState, useMemo, useEffect } from "react";
+import { useNavigate, useLocation, useParams, useSearchParams } from "react-router-dom";
 import { Download, ArrowLeft } from "lucide-react";
 
 import { useMembers } from "../../context/MemberContext";
@@ -27,14 +27,47 @@ const DepartmentMembersPage = () => {
   const location = useLocation();
   const { departmentName: urlDepartmentName } = useParams();
   const { getPreviousPage } = useNavigationHistory();
+  const [searchParams] = useSearchParams();
   const [sortBy, setSortBy] = useState('risk-desc');
   const [activeRiskFilter, setActiveRiskFilter] = useState(null);
   const [selectedMemberForAssignment, setSelectedMemberForAssignment] = useState(null);
 
+  // ✅ ADD PREDICTION WINDOW STATE
+  const [predictionWindow, setPredictionWindow] = useState(90);
+
+  // ✅ Handle window parameter from URL
+  useEffect(() => {
+    const windowParam = searchParams.get('window');
+    if (windowParam) {
+      setPredictionWindow(parseInt(windowParam));
+    }
+  }, [searchParams]);
+
+  // ✅ Scroll to top when page loads
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Get department name from URL params or fallback to state
   const departmentName = urlDepartmentName ? decodeURIComponent(urlDepartmentName) : (location.state?.departmentName || 'Department');
-  const departmentMembers = location.state?.members ||
-    allMembers.filter(m => m.department === departmentName);
+
+  // ✅ ADJUST DEPARTMENT MEMBERS BASED ON WINDOW
+  const adjustedDepartmentMembers = useMemo(() => {
+    const baseMembers = location.state?.members ||
+      allMembers.filter(m => m.department === departmentName);
+
+    let multiplier = 1;
+    if (predictionWindow === 30) multiplier = 0.85;
+    if (predictionWindow === 60) multiplier = 1;
+    if (predictionWindow === 90) multiplier = 1.15;
+
+    return baseMembers.map(m => ({
+      ...m,
+      riskScore: Math.min(m.riskScore * multiplier, 1),
+    }));
+  }, [allMembers, departmentName, location.state?.members, predictionWindow]);
+
+  const departmentMembers = adjustedDepartmentMembers;
 
   // Organize members by risk tier
   const riskTiers = useMemo(() => {

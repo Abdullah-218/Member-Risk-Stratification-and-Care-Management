@@ -27,7 +27,7 @@ const DepartmentsPage = () => {
   }, [members, predictionWindow]);
 
   const handleViewMembers = (departmentName) => {
-    navigate(`/org/department-members/${encodeURIComponent(departmentName)}`);
+    navigate(`/org/department-members/${encodeURIComponent(departmentName)}?window=${predictionWindow}`);
   };
 
   // ✅ Group members by department (DYNAMIC)

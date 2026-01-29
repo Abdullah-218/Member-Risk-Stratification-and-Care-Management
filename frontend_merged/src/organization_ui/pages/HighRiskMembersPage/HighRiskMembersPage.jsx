@@ -30,11 +30,13 @@ const HighRiskMembersPage = () => {
   // ✅ ADD PREDICTION WINDOW STATE
   const [predictionWindow, setPredictionWindow] = useState(90);
 
-  // ✅ Handle URL parameters for filtering
+  // ✅ Handle URL parameters for filtering and window
   useEffect(() => {
     const filterParam = searchParams.get('filter');
+    const windowParam = searchParams.get('window');
+
+    // Set filter from URL
     if (filterParam) {
-      // Map filter parameter to filter state
       const filterMap = {
         'critical': '5',
         'high': '4',
@@ -44,7 +46,17 @@ const HighRiskMembersPage = () => {
       };
       setFilter(filterMap[filterParam] || 'all');
     }
+
+    // Set prediction window from URL
+    if (windowParam) {
+      setPredictionWindow(parseInt(windowParam));
+    }
   }, [searchParams]);
+
+  // ✅ Scroll to top when page loads
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // ✅ ADJUST MEMBERS BASED ON WINDOW (SAME LOGIC AS DASHBOARD/DEPARTMENTS)
   const adjustedMembers = useMemo(() => {

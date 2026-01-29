@@ -11,7 +11,7 @@ import {
   Cell,
 } from "recharts";
 
-const RiskDistributionChart = ({ members }) => {
+const RiskDistributionChart = ({ members, predictionWindow }) => {
   const navigate = useNavigate();
 
   const data = [
@@ -49,8 +49,8 @@ const RiskDistributionChart = ({ members }) => {
 
   const handleBarClick = (data) => {
     if (data && data.riskRange) {
-      // Navigate to high-risk members page with filter
-      navigate(`/org/high-risk-members?filter=${data.riskRange}`);
+      // Navigate to high-risk members page with filter and window
+      navigate(`/org/high-risk-members?filter=${data.riskRange}&window=${predictionWindow}`);
     }
   };
 

@@ -161,14 +161,14 @@ const DashboardPage = () => {
         />
 
 
-        <RiskDistributionChart members={adjustedMembers} />
+        <RiskDistributionChart members={adjustedMembers} predictionWindow={predictionWindow} />
 
         <PriorityActions
           highRiskCount={highRiskCount}
           diabetesRiskIncrease={
             analyticsByWindow[predictionWindow].diabetesRiskIncrease
           }
-          onViewHighRisk={() => navigate("/org/high-risk-members")}
+          onViewHighRisk={() => navigate(`/org/high-risk-members?window=${predictionWindow}`)}
           onViewTrendAnalysis={() => setShowTrendAnalysis(true)}
         />
 
