@@ -1,0 +1,4 @@
+org_pred_id,organization_id,prediction_window,total_patients,avg_risk_score,tier_1_count,tier_2_count,tier_3_count,tier_4_count,tier_5_count,avg_roi_percent,avg_intervention_cost,total_expected_savings,total_net_benefit,created_at,updated_at
+10,1,30_day,3002,0.0584,2586,236,68,98,14,60.72,,,78209.57,2026-01-29 10:45:46.374460,2026-01-29 10:45:46.374460
+11,1,60_day,3002,0.1442,1933,533,279,201,56,27.8,,,242339.3,2026-01-29 10:45:46.374460,2026-01-29 10:45:46.374460
+12,1,90_day,3002,0.2744,1317,458,594,325,308,-3.95,,,132923.3,2026-01-29 10:45:46.374460,2026-01-29 10:45:46.374460
