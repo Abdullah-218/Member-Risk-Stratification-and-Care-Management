@@ -308,3 +308,74 @@ For questions or issues, refer to:
 - `Readme/readME.md` - Project overview
 - `Readme/INTERACTIVE_ANALYSIS_GUIDE.md` - Interactive analysis guide
 - Model documentation in `src/` files
+
+
+actually the 
+individual patient prediction model is new_patient_risk_prediction.py
+organization grouped data prediction is evaluation/roi_calculation.py
+
+
+SELECT INPUT METHOD
+======================================================================
+1) Interactive terminal input
+2) Load from CSV file
+
+Choose option (1 or 2): 1
+
+👤 Enter patient information
+
+======================================================================
+PATIENT INFORMATION ENTRY
+======================================================================
+
+👤 DEMOGRAPHICS
+----------------------------------------------------------------------
+  Age (years): 60
+  Gender (M/F): M
+
+  Race:
+    1 = White, 2 = Black, 3 = Other, 5 = Hispanic
+  Race code (1/2/3/5): 5
+
+  Annual Healthcare Cost ($): 22000
+
+🏥 CHRONIC CONDITIONS (Yes=1/No=0)
+----------------------------------------------------------------------
+  Alzheimer's Disease (0/1): 0
+  Congestive Heart Failure (0/1): 1
+  Chronic Kidney Disease (0/1): 1
+  Cancer (0/1): 0
+  COPD (0/1): 1
+  Depression (0/1): 0
+  Diabetes Mellitus (0/1): 1
+  Ischemic Heart Disease (0/1): 1
+  Rheumatoid Arthritis/Osteoarthritis (0/1): 1
+  Stroke/TIA (0/1): 0
+
+📋 ADDITIONAL FACTORS
+----------------------------------------------------------------------
+  End-Stage Renal Disease (0/1): 0
+
+📊 UTILIZATION METRICS (in past 12 months)
+----------------------------------------------------------------------
+  Hospital Admissions: 1
+  Hospital Days: 8
+  Outpatient Visits: 2
+  Days Since Last Admission (or 999 if none): 60
+
+✅ Patient data entered successfully
+
+/Users/abdullah/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sklearn/base.py:465: UserWarning: X does not have valid feature names, but ExtraTreesClassifier was fitted with feature names
+  warnings.warn(
+/Users/abdullah/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sklearn/base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+
+======================================================================
+PATIENT RISK ASSESSMENT REPORT (TIME-SCALED ROI)
+======================================================================
+Generated: January 29, 2026 at 12:12:24
+
+PATIENT SUMMARY
+----------------------------------------------------------------------
+  Age: 60 years
+  Annual Healthcare Cost: $22,000.00

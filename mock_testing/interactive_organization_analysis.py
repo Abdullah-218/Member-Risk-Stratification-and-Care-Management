@@ -23,6 +23,9 @@ class InteractiveOrgAnalysis:
     def __init__(self):
         Path('data/output/interactive_analysis').mkdir(parents=True, exist_ok=True)
         
+        # Fixed random seed for consistent patient sampling
+        np.random.seed(42)
+        
         self.intervention_costs = {
             5: 2500,
             4: 1200,
@@ -65,11 +68,11 @@ class InteractiveOrgAnalysis:
         # Number of patients
         while True:
             try:
-                num_patients = int(input("📊 How many patients to analyze? (1-3000, default=100): ") or "100")
-                if 1 <= num_patients <= 3000:
+                num_patients = int(input("📊 How many patients to analyze? (1-100000, default=100): ") or "100")
+                if 1 <= num_patients <= 100000:
                     break
                 else:
-                    print("   ❌ Please enter a number between 1 and 3000")
+                    print("   ❌ Please enter a number between 1 and 100000")
             except ValueError:
                 print("   ❌ Please enter a valid number")
         
