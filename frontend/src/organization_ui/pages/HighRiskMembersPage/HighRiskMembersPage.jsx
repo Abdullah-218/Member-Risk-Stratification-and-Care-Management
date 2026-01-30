@@ -2,8 +2,8 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Download } from "lucide-react";
 
-import { useMembers } from "../../context/MemberContext";
 import { useCarePlan } from "../../context/CarePlanContext";
+import { getMembersByTier } from "../../services/api/dashboardApi";
 
 // common components
 import Button from "../../components/common/Button/Button";
@@ -17,7 +17,6 @@ import CarePlanAssignmentModal from "../../components/members/CarePlanAssignment
 import styles from "./HighRiskMembersPage.module.css";
 
 const HighRiskMembersPage = () => {
-  const { members, setSelectedMember } = useMembers();
   const { assignCarePlan, getCarePlan } = useCarePlan();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -25,10 +24,13 @@ const HighRiskMembersPage = () => {
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('risk-desc');
   const [selectedMemberForAssignment, setSelectedMemberForAssignment] = useState(null);
-  const [displayCount, setDisplayCount] = useState(10);
-
-  // ✅ ADD PREDICTION WINDOW STATE
   const [predictionWindow, setPredictionWindow] = useState(90);
+  
+  // ✅ NEW STATE FOR REAL DATA
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedMember, setSelectedMember] = useState(null);
 
   // ✅ Handle URL parameters for filtering and window
   useEffect(() => {
@@ -58,31 +60,56 @@ const HighRiskMembersPage = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  // ✅ ADJUST MEMBERS BASED ON WINDOW (SAME LOGIC AS DASHBOARD/DEPARTMENTS)
-  const adjustedMembers = useMemo(() => {
-    let multiplier = 1;
+  // ✅ FETCH REAL DATA FROM API
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Convert prediction window to API format
+        const windowParam = `${predictionWindow}_day`;
+        
+        // Convert filter to tier array
+        // High-risk means tier 4 or 5 (risk_tier >= 4)
+        let tiers = [];
+        if (filter === 'all') tiers = [4, 5];  // ✅ FIXED: Fetch tiers 4+5 for "All High Risk"
+        else if (filter === '5') tiers = [5];
+        else if (filter === '4') tiers = [4];
+        
+        const result = await getMembersByTier(windowParam, tiers, 1000, 0);
+        
+        // Transform API data to match component expectations
+        const transformedMembers = result.data.map(m => ({
+          id: m.id,
+          name: m.name || `Patient ${m.externalId}`,
+          externalId: m.externalId,
+          riskScore: m.riskScore,
+          riskTier: m.riskTier,
+          estimatedCost: m.estimatedCost,
+          department: m.department,
+          age: m.age,
+          gender: m.gender,
+          lastVisit: m.lastVisit,
+          careTeam: m.careTeam || null,
+        }));
+        
+        setMembers(transformedMembers);
+      } catch (err) {
+        console.error('Error fetching members:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchMembers();
+  }, [predictionWindow, filter]);
 
-    if (predictionWindow === 30) multiplier = 0.85;
-    if (predictionWindow === 60) multiplier = 1;
-    if (predictionWindow === 90) multiplier = 1.15;
-
-    return members.map(m => ({
-      ...m,
-      riskScore: Math.min(m.riskScore * multiplier, 1),
-    }));
-  }, [members, predictionWindow]);
-
+  // ✅ No additional filtering needed - we fetch the correct tiers already
   const highRiskMembers = useMemo(() =>
-    adjustedMembers.filter(m => {
-      if (filter === 'all') return m.riskScore >= 0.6;
-      if (filter === '5') return m.riskScore >= 0.8;
-      if (filter === '4') return m.riskScore >= 0.6 && m.riskScore < 0.8;
-      if (filter === '3') return m.riskScore >= 0.4 && m.riskScore < 0.6;
-      if (filter === '2') return m.riskScore >= 0.2 && m.riskScore < 0.4;
-      if (filter === '1') return m.riskScore < 0.2;
-      return false;
-    }),
-    [adjustedMembers, filter]
+    members,  // All fetched members are already high-risk (tiers 4+5)
+    [members]
   );
 
   const sortedMembers = useMemo(() =>
@@ -108,10 +135,6 @@ const HighRiskMembersPage = () => {
     const message = `Contact information for ${member.name}:\nMember ID: ${member.id}\nDepartment: ${member.department}\n\nPreparing to send notification...`;
     alert(message);
     console.log(`Contact initiated for member ${member.id}:`, member.name);
-  };
-
-  const handleLoadMore = () => {
-    setDisplayCount(prev => Math.min(prev + 10, sortedMembers.length));
   };
 
   const handleAssignCarePlan = (assignment) => {
@@ -199,12 +222,9 @@ const HighRiskMembersPage = () => {
             onChange={(e) => setFilter(e.target.value)}
             className={styles.select}
           >
-            <option value="all">All High Risk (≥60%)</option>
-            <option value="5">Critical Only (≥80%)</option>
-            <option value="4">High Only (60-80%)</option>
-            <option value="3">Medium Only (40-60%)</option>
-            <option value="2">Medium-Low Only (20-40%)</option>
-            <option value="1">Low Only (&lt;20%)</option>
+            <option value="all">All High Risk (Tier 4 + 5)</option>
+            <option value="5">Critical Risk Only (Tier 5)</option>
+            <option value="4">High Risk Only (Tier 4)</option>
           </select>
         </div>
 
@@ -223,9 +243,18 @@ const HighRiskMembersPage = () => {
       </Card>
 
       <div className={styles.memberList}>
-        {sortedMembers.length > 0 ? (
+        {loading ? (
+          <div className={styles.loadingState}>
+            <p>Loading members...</p>
+          </div>
+        ) : error ? (
+          <div className={styles.errorState}>
+            <p>Error loading members: {error}</p>
+            <Button onClick={() => window.location.reload()}>Retry</Button>
+          </div>
+        ) : sortedMembers.length > 0 ? (
           <>
-            {sortedMembers.slice(0, displayCount).map(member => (
+            {sortedMembers.map(member => (
               <MemberCard
                 key={member.id}
                 member={member}
@@ -234,14 +263,6 @@ const HighRiskMembersPage = () => {
                 onContact={() => handleContact(member)}
               />
             ))}
-
-            {sortedMembers.length > displayCount && (
-              <div className={styles.loadMore}>
-                <Button variant="secondary" onClick={handleLoadMore}>
-                  Load More... ({sortedMembers.length - displayCount} remaining)
-                </Button>
-              </div>
-            )}
           </>
         ) : (
           <Card className={styles.emptyState}>

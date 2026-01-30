@@ -244,6 +244,56 @@ export const Dashboard = {
 
     return result.rows;
   },
+
+  /**
+   * Get members filtered by risk tier(s)
+   * Returns: Detailed member information for specific risk tiers
+   */
+  getMembersByTier: async (predictionWindow = '30_day', tiers = [], limit = 100, offset = 0) => {
+    // If no tiers specified, return all members
+    const tierFilter = tiers && tiers.length > 0
+      ? `AND pred.risk_tier = ANY($2::int[])`
+      : '';
+    
+    const params = tiers && tiers.length > 0
+      ? [predictionWindow, tiers, limit, offset]
+      : [predictionWindow, limit, offset];
+    
+    const limitOffset = tiers && tiers.length > 0 ? '$3 OFFSET $4' : '$2 OFFSET $3';
+
+    const result = await query(
+      `SELECT
+        p.patient_id as id,
+        p.external_id as "externalId",
+        p.age,
+        p.gender,
+        p.annual_cost as "annualCost",
+        d.department_name as department,
+        d.department_code as "deptCode",
+        pred.risk_score as "riskScore",
+        pred.risk_tier as "riskTier",
+        pred.tier_label as "tierLabel",
+        fp.window_cost as "estimatedCost",
+        fp.intervention_cost as "interventionCost",
+        fp.expected_savings as "expectedSavings",
+        fp.net_benefit as "netBenefit",
+        fp.roi_percent as "roiPercent",
+        fp.roi_category as "roiCategory"
+      FROM patients p
+      LEFT JOIN departments d ON p.department_id = d.department_id
+      LEFT JOIN predictions pred ON p.patient_id = pred.patient_id
+      LEFT JOIN financial_projections fp ON pred.prediction_id = fp.prediction_id
+      WHERE pred.prediction_window = $1
+        ${tierFilter}
+        AND p.is_active = true
+        AND pred.is_active = true
+      ORDER BY pred.risk_score DESC
+      LIMIT ${limitOffset}`,
+      params
+    );
+
+    return result.rows;
+  },
 };
 
 export default Dashboard;

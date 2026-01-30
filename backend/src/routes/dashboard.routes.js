@@ -289,4 +289,54 @@ router.get('/tier-financials', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/dashboard/members-by-tier
+ * Get members filtered by risk tier(s) and prediction window
+ * 
+ * Query params:
+ *  - window: 30_day|60_day|90_day (default: 30_day)
+ *  - tiers: comma-separated tier numbers (e.g., "4,5" for high+critical) or empty for all
+ *  - limit: number of results (default: 100)
+ *  - offset: pagination offset (default: 0)
+ * 
+ * Response: { success, data: [...members], total, window, tiers }
+ */
+router.get('/members-by-tier', async (req, res) => {
+  try {
+    const { 
+      window = '30_day', 
+      tiers = '', 
+      limit = '100', 
+      offset = '0' 
+    } = req.query;
+    
+    // Parse tiers from comma-separated string to array of integers
+    const tierArray = tiers 
+      ? tiers.split(',').map(t => parseInt(t.trim())).filter(t => !isNaN(t) && t >= 1 && t <= 5)
+      : [];
+    
+    const members = await Dashboard.getMembersByTier(
+      window,
+      tierArray,
+      parseInt(limit),
+      parseInt(offset)
+    );
+    
+    res.json({
+      success: true,
+      window,
+      tiers: tierArray.length > 0 ? tierArray : 'all',
+      total: members.length,
+      data: members,
+    });
+  } catch (error) {
+    console.error('Dashboard members-by-tier error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch members by tier',
+      error: error.message,
+    });
+  }
+});
+
 export default router;

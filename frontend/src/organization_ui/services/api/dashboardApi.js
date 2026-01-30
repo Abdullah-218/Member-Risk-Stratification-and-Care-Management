@@ -221,6 +221,66 @@ export const getTierFinancials = async (predictionWindow = '30_day') => {
 };
 
 /**
+ * Fetch members filtered by risk tier(s) and prediction window
+ * @param {string} predictionWindow - '30_day'|'60_day'|'90_day'
+ * @param {Array<number>} tiers - Array of tier numbers [1,2,3,4,5] or empty for all
+ * @param {number} limit - Number of results to return
+ * @param {number} offset - Pagination offset
+ * @returns {Promise<Object>} { success, data: [...members], total, window, tiers }
+ */
+export const getMembersByTier = async (predictionWindow = '30_day', tiers = [], limit = 100, offset = 0) => {
+  try {
+    // Convert tiers array to comma-separated string for query param
+    const tiersParam = Array.isArray(tiers) && tiers.length > 0 
+      ? tiers.join(',') 
+      : '';
+    
+    const queryParams = new URLSearchParams({
+      window: predictionWindow,
+      limit: limit.toString(),
+      offset: offset.toString(),
+    });
+    
+    if (tiersParam) {
+      queryParams.append('tiers', tiersParam);
+    }
+    
+    const response = await fetch(
+      `${API_BASE_URL}/dashboard/members-by-tier?${queryParams}`,
+      {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to fetch members by tier');
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('Error fetching members by tier:', error);
+    console.error('Error details:', {
+      message: error.message,
+      predictionWindow,
+      tiers,
+      limit,
+      offset
+    });
+    throw error;
+  }
+};
+
+/**
  * Get complete dashboard data for a specific window
  * Returns: summary, members, tiers, departments, priority patients
  */
@@ -246,3 +306,4 @@ export const getCompleteDashboardData = async (predictionWindow = '30_day') => {
     throw error;
   }
 };
+
