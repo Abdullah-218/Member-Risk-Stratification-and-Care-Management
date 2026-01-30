@@ -112,9 +112,9 @@ const AssessmentReportPage = () => {
         </Button>
 
         <Card className={pageStyles.resultsCard}>
-          <h2 className={pageStyles.resultsTitle}>📊 Your Health Risk Assessment</h2>
+          <h2 className={pageStyles.resultsTitle}>📊 Your Health Risk Assessment Report</h2>
           <p className={pageStyles.subtitle}>
-            Based on machine learning analysis of your health data
+            A comprehensive evaluation of your health status and predicted healthcare needs
           </p>
 
           {/* Patient Summary */}
