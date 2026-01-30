@@ -20,3 +20,18 @@ services:
     restart: always
     ports:
       - "8080:8080"
+
+
+# To run the services, use the command:
+# docker-compose up -d
+
+# Access Adminer at: http://localhost:8080
+# Database connection details for Adminer:
+# System: PostgreSQL
+# Server: db
+# Username: abdullah
+# Password: abdullah123
+# Database: risk_predictionDB
+
+# To stop the services, use the command:
+# docker-compose down
