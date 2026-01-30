@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, TrendingUp, DollarSign, Activity, AlertCircle } from 'lucide-react';
+import { ChevronLeft, TrendingUp, DollarSign, Activity, AlertCircle, Info } from 'lucide-react';
 import Card from '../common/Card/Card';
 import Button from '../common/Button/Button';
 import pageStyles from './IndividualAssessmentPage/IndividualAssessmentPage.module.css';
@@ -15,6 +15,8 @@ const REPORT_STORAGE_KEY = 'assessmentReport';
  */
 const AssessmentReportPage = () => {
   const navigate = useNavigate();
+  const [shapModalOpen, setShapModalOpen] = useState(false);
+  const [selectedWindow, setSelectedWindow] = useState(null);
 
   const reportData = useMemo(() => {
     try {
@@ -24,6 +26,16 @@ const AssessmentReportPage = () => {
       return null;
     }
   }, []);
+
+  const openShapModal = (windowPeriod) => {
+    setSelectedWindow(windowPeriod);
+    setShapModalOpen(true);
+  };
+
+  const closeShapModal = () => {
+    setShapModalOpen(false);
+    setSelectedWindow(null);
+  };
 
   const getConditionLabel = (key) => {
     const labels = {
@@ -176,12 +188,43 @@ const AssessmentReportPage = () => {
                   <div style={{ marginBottom: '20px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                       <Activity size={20} color={getTierColor(prediction.riskTier)} />
-                      <div>
+                      <div style={{ flex: 1 }}>
                         <div style={{ fontSize: '14px', color: '#6b7280' }}>Risk Score</div>
                         <div style={{ fontSize: '24px', fontWeight: '700', color: getTierColor(prediction.riskTier) }}>
                           {prediction.riskScore}%
                         </div>
                       </div>
+                      {/* SHAP Info Icon */}
+                      {reportData.explanations && reportData.explanations[period] && (
+                        <button
+                          onClick={() => openShapModal(period)}
+                          style={{
+                            background: '#3b82f6',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '32px',
+                            height: '32px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#2563eb';
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#3b82f6';
+                            e.currentTarget.style.transform = 'scale(1)';
+                          }}
+                          title="What's driving this risk score?"
+                        >
+                          <Info size={18} />
+                        </button>
+                      )}
                     </div>
                     <div 
                       style={{
@@ -307,6 +350,170 @@ const AssessmentReportPage = () => {
           )}
         </Card>
       </div>
+
+      {/* SHAP Explanation Modal */}
+      {shapModalOpen && selectedWindow && reportData.explanations && reportData.explanations[selectedWindow] && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px'
+          }}
+          onClick={closeShapModal}
+        >
+          <div 
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              maxWidth: '600px',
+              width: '100%',
+              maxHeight: '80vh',
+              overflow: 'auto',
+              position: 'relative',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div style={{
+              padding: '20px',
+              borderBottom: '1px solid #e5e7eb',
+              position: 'sticky',
+              top: 0,
+              backgroundColor: 'white',
+              borderRadius: '12px 12px 0 0',
+              zIndex: 10
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#1f2937', margin: 0 }}>
+                  <Info size={20} style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }} />
+                  What's Driving Your {selectedWindow === '30-day' ? '30-Day' : selectedWindow === '60-day' ? '60-Day' : '90-Day'} Risk Score?
+                </h3>
+                <button
+                  onClick={closeShapModal}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '24px',
+                    cursor: 'pointer',
+                    color: '#6b7280',
+                    padding: '4px',
+                    lineHeight: 1,
+                    transition: 'color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.color = '#1f2937'}
+                  onMouseLeave={(e) => e.target.style.color = '#6b7280'}
+                  title="Close"
+                >
+                  ×
+                </button>
+              </div>
+              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '8px', marginBottom: 0 }}>
+                These are the top 5 factors influencing your risk prediction, based on SHAP (SHapley Additive exPlanations) analysis.
+              </p>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: '20px' }}>
+              {reportData.explanations[selectedWindow].top_drivers.map((driver, idx) => {
+                const impactColor = driver.impact > 0 ? '#dc2626' : '#059669';
+                
+                return (
+                  <div 
+                    key={idx} 
+                    style={{ 
+                      marginBottom: '16px',
+                      backgroundColor: driver.impact > 0 ? '#fef2f2' : '#ecfdf5',
+                      padding: '14px',
+                      borderRadius: '8px',
+                      border: `1px solid ${driver.impact > 0 ? '#fecaca' : '#a7f3d0'}`
+                    }}
+                  >
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center',
+                      marginBottom: '8px'
+                    }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ 
+                          fontSize: '14px', 
+                          fontWeight: '600',
+                          color: '#1f2937',
+                          marginBottom: '4px'
+                        }}>
+                          {idx + 1}. {driver.label}
+                        </div>
+                        <div style={{ 
+                          fontSize: '12px', 
+                          color: '#6b7280'
+                        }}>
+                          Current value: {driver.value.toFixed(driver.value < 10 ? 1 : 0)}
+                        </div>
+                      </div>
+                      <div style={{ 
+                        fontSize: '16px', 
+                        fontWeight: '700',
+                        color: impactColor,
+                        minWidth: '70px',
+                        textAlign: 'right'
+                      }}>
+                        {driver.percentage.toFixed(1)}%
+                      </div>
+                    </div>
+                    
+                    {/* Impact bar */}
+                    <div style={{ 
+                      width: '100%', 
+                      height: '10px', 
+                      backgroundColor: 'white',
+                      borderRadius: '5px',
+                      overflow: 'hidden',
+                      marginBottom: '8px'
+                    }}>
+                      <div style={{ 
+                        width: `${driver.percentage}%`, 
+                        height: '100%',
+                        backgroundColor: impactColor,
+                        transition: 'width 0.3s ease'
+                      }} />
+                    </div>
+                    
+                    <div style={{ 
+                      fontSize: '12px', 
+                      fontWeight: '500',
+                      color: impactColor
+                    }}>
+                      {driver.direction === 'increases' ? '↑ Increases' : '↓ Decreases'} your risk score
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Footer tip */}
+              <div style={{ 
+                backgroundColor: '#f0f9ff',
+                border: '1px solid #bae6fd',
+                padding: '12px',
+                borderRadius: '8px',
+                marginTop: '20px'
+              }}>
+                <div style={{ fontSize: '13px', color: '#0c4a6e', lineHeight: '1.5' }}>
+                  <strong>💡 Tip:</strong> Focus on modifiable factors like healthcare utilization patterns and chronic disease management to potentially reduce your risk score.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

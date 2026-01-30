@@ -56,6 +56,7 @@ const Step4ReviewPredict = ({ data, onPredict, onBack }) => {
           conditions,
           utilization,
           predictions: result.predictions,
+          explanations: result.explanations, // Add SHAP explanations
           patient_id_db: result.patient_id_db, // Database ID for linking to org side
           timestamp: new Date().toISOString()
         };

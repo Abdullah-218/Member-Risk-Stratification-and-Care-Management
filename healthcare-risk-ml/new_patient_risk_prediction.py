@@ -774,6 +774,126 @@ class NewPatientRiskPredictor:
         else:
             return 5
     
+    def explain_prediction_with_shap(self, patient_features, predictions):
+        """
+        Calculate SHAP values to explain what's driving the risk predictions
+        Returns top risk drivers for each prediction window
+        """
+        try:
+            import shap
+            
+            X_patient = patient_features.reshape(1, -1)
+            explanations = {}
+            
+            # Feature name mapping for user-friendly display
+            feature_labels = {
+                'age': 'Age',
+                'is_female': 'Gender (Female)',
+                'is_elderly': 'Elderly Status (75+)',
+                'race_encoded': 'Race/Ethnicity',
+                'has_esrd': 'End-Stage Renal Disease',
+                'has_alzheimers': "Alzheimer's Disease",
+                'has_chf': 'Congestive Heart Failure',
+                'has_ckd': 'Chronic Kidney Disease',
+                'has_cancer': 'Cancer',
+                'has_copd': 'COPD',
+                'has_depression': 'Depression',
+                'has_diabetes': 'Diabetes',
+                'has_ischemic_heart': 'Ischemic Heart Disease',
+                'has_ra_oa': 'Arthritis (RA/OA)',
+                'has_stroke': 'Stroke/TIA History',
+                'total_admissions_2008': 'Hospital Admissions (past year)',
+                'total_hospital_days_2008': 'Total Hospital Days',
+                'days_since_last_admission': 'Days Since Last Admission',
+                'recent_admission': 'Recent Admission (90 days)',
+                'total_outpatient_visits_2008': 'Outpatient Visits',
+                'high_outpatient_user': 'High Outpatient User (10+ visits)',
+                'total_annual_cost': 'Annual Healthcare Cost',
+                'cost_percentile': 'Cost Percentile',
+                'high_cost': 'High Cost Patient',
+                'total_inpatient_cost': 'Inpatient Costs',
+                'frailty_score': 'Frailty Score',
+                'complexity_index': 'Medical Complexity Index'
+            }
+            
+            for window in ['30_day', '60_day', '90_day']:
+                model = self.models[window]
+                
+                # Handle CalibratedClassifierCV - extract base estimator
+                if hasattr(model, 'calibrated_classifiers_'):
+                    # Get the first calibrated classifier's base estimator
+                    base_model = model.calibrated_classifiers_[0].estimator
+                else:
+                    base_model = model
+                
+                # Create SHAP explainer for tree-based models
+                explainer = shap.TreeExplainer(base_model)
+                shap_values = explainer.shap_values(X_patient)
+                
+                # Get SHAP values for positive class (readmission risk)
+                if isinstance(shap_values, list):
+                    shap_values_positive = shap_values[1][0]  # Class 1 (positive)
+                else:
+                    shap_values_positive = shap_values[0]
+                
+                # Create list of feature impacts
+                feature_impacts = []
+                for i, feature_name in enumerate(self.feature_names):
+                    impact_value = float(shap_values_positive[i])
+                    feature_value = float(X_patient[0][i])
+                    
+                    # Only include features with non-zero values or significant impact
+                    if abs(impact_value) > 0.001 or feature_value > 0:
+                        feature_impacts.append({
+                            'feature': feature_name,
+                            'label': feature_labels.get(feature_name, feature_name),
+                            'impact': impact_value,
+                            'value': feature_value,
+                            'abs_impact': abs(impact_value)
+                        })
+                
+                # Sort by absolute impact (most influential first)
+                feature_impacts.sort(key=lambda x: x['abs_impact'], reverse=True)
+                
+                # Get top 5 drivers
+                top_drivers = feature_impacts[:5]
+                
+                # Calculate percentage contribution
+                total_impact = sum([abs(f['impact']) for f in top_drivers])
+                for driver in top_drivers:
+                    if total_impact > 0:
+                        driver['percentage'] = (abs(driver['impact']) / total_impact) * 100
+                    else:
+                        driver['percentage'] = 0
+                    driver['direction'] = 'increases' if driver['impact'] > 0 else 'decreases'
+                
+                # Get base risk - handle different expected_value formats
+                try:
+                    if isinstance(explainer.expected_value, (list, np.ndarray)):
+                        if len(explainer.expected_value) > 1:
+                            base_risk = float(explainer.expected_value[1])  # Binary classification
+                        else:
+                            base_risk = float(explainer.expected_value[0])
+                    else:
+                        base_risk = float(explainer.expected_value)
+                except (IndexError, TypeError):
+                    base_risk = 0.0
+                
+                explanations[window] = {
+                    'top_drivers': top_drivers,
+                    'base_risk': base_risk,
+                    'predicted_risk': predictions[window]['risk_score']
+                }
+            
+            return explanations
+            
+        except ImportError:
+            print("⚠ SHAP not available, skipping explanation", file=sys.stderr)
+            return None
+        except Exception as e:
+            print(f"⚠ SHAP explanation failed: {e}", file=sys.stderr)
+            return None
+    
     def calculate_3_window_projection(self, patient_data, predictions):
         """
         Calculate projected costs and ROI across 3 windows
@@ -1170,6 +1290,9 @@ def main():
             predictions = predictor.predict_risk_windows(patient_features)
             projection = predictor.calculate_3_window_projection(engineered_features, predictions)
             
+            # Calculate SHAP explanations
+            explanations = predictor.explain_prediction_with_shap(patient_features, predictions)
+            
             # Store to database if enabled
             patient_id_db = None
             if predictor.use_database:
@@ -1184,7 +1307,8 @@ def main():
                 'patient_id_db': patient_id_db,
                 'patient_data': engineered_features,
                 'predictions': predictions,
-                'projection': projection
+                'projection': projection,
+                'explanations': explanations  # Add SHAP explanations
             }
             
             print(json.dumps(output))

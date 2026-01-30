@@ -169,18 +169,20 @@ export async function predictPatientRisk(assessmentData, options = {}) {
  * {
  *   patient_id, patient_id_db, patient_data,
  *   predictions: { 30_day: {risk_score, tier, ...}, 60_day: {...}, 90_day: {...} },
- *   projection: { 30_day: {roi_percent, ...}, 60_day: {...}, 90_day: {...} }
+ *   projection: { 30_day: {roi_percent, ...}, 60_day: {...}, 90_day: {...} },
+ *   explanations: { 30_day: {top_drivers: [...], base_risk, predicted_risk}, ... }
  * }
  * 
  * Frontend expects:
  * {
  *   success: true,
  *   patient_id_db,
- *   predictions: { '30-day': {...}, '60-day': {...}, '90-day': {...} }
+ *   predictions: { '30-day': {...}, '60-day': {...}, '90-day': {...} },
+ *   explanations: { '30-day': {...}, '60-day': {...}, '90-day': {...} }
  * }
  */
 export function transformPythonOutputToFrontend(pythonResult) {
-  const { patient_id_db, predictions, projection } = pythonResult;
+  const { patient_id_db, predictions, projection, explanations } = pythonResult;
 
   // Transform window names: 30_day → '30-day'
   const frontendPredictions = {};
@@ -213,10 +215,20 @@ export function transformPythonOutputToFrontend(pythonResult) {
     };
   }
 
+  // Transform explanations (if available)
+  const frontendExplanations = {};
+  if (explanations) {
+    for (const [window, explData] of Object.entries(explanations)) {
+      const frontendWindow = window.replace('_', '-');
+      frontendExplanations[frontendWindow] = explData;
+    }
+  }
+
   return {
     success: true,
     patient_id_db,
     predictions: frontendPredictions,
+    explanations: explanations ? frontendExplanations : null,
     message: 'Risk prediction completed successfully'
   };
 }
