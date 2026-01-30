@@ -25,13 +25,13 @@ const IndividualAssessmentPage = () => {
         </Button>
 
         <Card className={styles.card}>
-          <h2 className={styles.title}>🩺 Individual Patient Risk Prediction</h2>
+          <h2 className={styles.title}>🩺 Individual Patient Risk Assessment</h2>
           <p className={styles.subtitle}>
-            Complete this 5-step assessment to understand your health risks and potential ROI
+            Complete this 4-step assessment to understand your health risks and potential ROI
           </p>
           <div className={styles.info}>
-            ℹ️ This tool helps healthcare providers assess patient risk levels and potential cost savings
-            through targeted interventions. All data is securely processed and stored according to healthcare standards.
+            ℹ️ This tool uses advanced machine learning to predict your readmission risk across 30, 60, and 90-day 
+            windows and calculates potential cost savings through targeted interventions.
           </div>
 
           {/* Multi-Step Assessment Component */}

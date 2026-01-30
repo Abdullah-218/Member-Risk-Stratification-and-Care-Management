@@ -24,6 +24,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import json
 import random
+import sys
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
@@ -129,9 +130,9 @@ class NewPatientRiskPredictor:
     def load_models_and_config(self):
         """Load pre-trained models and feature configuration"""
         
-        print("\n" + "="*70)
-        print("LOADING TRAINED MODELS (CORRECTED TIME-SCALED VERSION)")
-        print("="*70 + "\n")
+        print("\n" + "="*70, file=sys.stderr)
+        print("LOADING TRAINED MODELS (CORRECTED TIME-SCALED VERSION)", file=sys.stderr)
+        print("="*70 + "\n", file=sys.stderr)
         
         try:
             # Load trained models for each window
@@ -139,28 +140,28 @@ class NewPatientRiskPredictor:
                 model_path = f'models/best_{window}_model.pkl'
                 model_data = joblib.load(model_path)
                 self.models[window] = model_data['model']
-                print(f"  ✅ Loaded {window.replace('_', '-').upper()} model: {model_data.get('name', 'Model')}")
+                print(f"  ✅ Loaded {window.replace('_', '-').upper()} model: {model_data.get('name', 'Model')}", file=sys.stderr)
             
             # Load X_train to get feature names
             X_train = pd.read_csv('data/processed/X_train.csv')
             self.feature_names = X_train.columns.tolist()
-            print(f"  ✅ Loaded {len(self.feature_names)} feature definitions")
-            print(f"  ✅ Using TIME-SCALED ROI calculation (0-100% realistic range)")
-            print()
+            print(f"  ✅ Loaded {len(self.feature_names)} feature definitions", file=sys.stderr)
+            print(f"  ✅ Using TIME-SCALED ROI calculation (0-100% realistic range)", file=sys.stderr)
+            print(file=sys.stderr)
             
         except Exception as e:
-            print(f"  ❌ Error loading models: {e}")
-            print("  Make sure models are trained by running src/04_model_train_test.py")
+            print(f"  ❌ Error loading models: {e}", file=sys.stderr)
+            print("  Make sure models are trained by running src/04_model_train_test.py", file=sys.stderr)
             raise
     
     def connect_db(self):
         """Connect to PostgreSQL database"""
         try:
             self.conn = psycopg2.connect(**self.db_config)
-            print("✅ Connected to PostgreSQL")
+            print("✅ Connected to PostgreSQL", file=sys.stderr)
             return True
         except Exception as e:
-            print(f"❌ Database connection failed: {e}")
+            print(f"❌ Database connection failed: {e}", file=sys.stderr)
             return False
     
     def close_db(self):
@@ -237,7 +238,7 @@ class NewPatientRiskPredictor:
             
             # Use patient_data which is a dict with all features
             if not isinstance(patient_data, dict):
-                print(f"❌ Storage failed: patient_data must be dict, got {type(patient_data)}")
+                print(f"❌ Storage failed: patient_data must be dict, got {type(patient_data)}", file=sys.stderr)
                 return None
             
             # Insert patient
@@ -269,9 +270,9 @@ class NewPatientRiskPredictor:
             result = cursor.fetchone()
             patient_id_db = result['patient_id'] if isinstance(result, dict) else result[0]
             self.conn.commit()
-            print(f"✅ Patient inserted (ID: {patient_id_db}) → {dept_name}")
+            print(f"✅ Patient inserted (ID: {patient_id_db}) → {dept_name}", file=sys.stderr)
             if secondary_depts:
-                print(f"   Secondary: {', '.join(secondary_depts)}")
+                print(f"   Secondary: {', '.join(secondary_depts)}", file=sys.stderr)
             
             # Insert predictions and ROI
             window_map = {'30_day': '30_day', '60_day': '60_day', '90_day': '90_day'}
@@ -320,19 +321,19 @@ class NewPatientRiskPredictor:
                 ))
             
             self.conn.commit()
-            print(f"✅ Stored 3 predictions and ROI to database")
+            print(f"✅ Stored 3 predictions and ROI to database", file=sys.stderr)
             
             # Update aggregation tables for organization and tier statistics
-            print(f"📊 Updating organization & tier aggregation tables...")
+            print(f"📊 Updating organization & tier aggregation tables...", file=sys.stderr)
             self._update_aggregation_tables(cursor, patient_id_db)
             self.conn.commit()
-            print(f"✅ Updated aggregation tables\n")
+            print(f"✅ Updated aggregation tables\n", file=sys.stderr)
             
             return patient_id_db
         
         except Exception as e:
             self.conn.rollback()
-            print(f"❌ Storage failed: {e}\n")
+            print(f"❌ Storage failed: {e}\n", file=sys.stderr)
             return None
     
     def _update_aggregation_tables(self, cursor, patient_id_db):
@@ -1139,8 +1140,66 @@ class NewPatientRiskPredictor:
 # ============================================
 
 def main():
-    """Main entry point"""
+    """Main entry point - supports interactive, CSV, and JSON modes"""
     
+    import sys
+    import argparse
+    
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='New Patient Risk Prediction')
+    parser.add_argument('--json-input', type=str, help='JSON string with patient data')
+    parser.add_argument('--patient-id', type=str, default=None, help='Patient identifier')
+    parser.add_argument('--save-to-db', type=str, default='true', help='Save to database (true/false)')
+    
+    args = parser.parse_args()
+    
+    # JSON INPUT MODE (for backend integration)
+    if args.json_input:
+        try:
+            predictor = NewPatientRiskPredictor(use_database=(args.save_to_db.lower() == 'true'))
+            
+            # Parse JSON input
+            patient_data = json.loads(args.json_input)
+            patient_id = args.patient_id or f'JSON_{int(datetime.now().timestamp())}'
+            
+            # Engineer features from raw input
+            engineered_features = predictor.engineer_features(patient_data)
+            
+            # Run prediction (without display)
+            patient_features = predictor.prepare_features(engineered_features)
+            predictions = predictor.predict_risk_windows(patient_features)
+            projection = predictor.calculate_3_window_projection(engineered_features, predictions)
+            
+            # Store to database if enabled
+            patient_id_db = None
+            if predictor.use_database:
+                if predictor.connect_db():
+                    patient_id_db = predictor.store_to_database(patient_id, engineered_features, predictions, projection)
+                    predictor.close_db()
+            
+            # Output JSON to stdout for Node.js to capture
+            output = {
+                'success': True,
+                'patient_id': patient_id,
+                'patient_id_db': patient_id_db,
+                'patient_data': engineered_features,
+                'predictions': predictions,
+                'projection': projection
+            }
+            
+            print(json.dumps(output))
+            sys.exit(0)
+            
+        except Exception as e:
+            error_output = {
+                'success': False,
+                'error': str(e),
+                'error_type': type(e).__name__
+            }
+            print(json.dumps(error_output))
+            sys.exit(1)
+    
+    # INTERACTIVE/CSV MODE (original functionality)
     predictor = NewPatientRiskPredictor()
     predictor.display_header()
     

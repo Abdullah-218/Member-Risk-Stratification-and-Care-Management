@@ -1,52 +1,49 @@
 /**
- * Assessment API Integration Hooks
+ * Assessment API Integration
  * 
- * These functions provide clean integration points for backend APIs.
- * Currently implemented as stubs for frontend development.
- * 
- * TODO: Connect these functions to actual backend APIs
+ * Connects frontend assessment flow with backend ML prediction service
  */
+
+const API_BASE_URL = 'http://localhost:3000/api';
 
 /**
- * Trigger risk prediction calculation
- * @param {Object} assessmentData - Complete assessment data
- * @returns {Promise<Object>} - Prediction results
+ * Trigger risk prediction calculation using ML model
+ * @param {Object} assessmentData - Complete assessment data from frontend
+ * @returns {Promise<Object>} - Prediction results with risk scores and ROI
  */
 export const onPredict = async (assessmentData) => {
-  // TODO: Replace with actual API call
-  // const response = await fetch('/api/predict-risk', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify(assessmentData)
-  // });
-  // return response.json();
+  try {
+    console.log('📤 Sending assessment to backend ML service...', assessmentData);
 
-  console.log('PREDICT API CALL - Assessment data:', assessmentData);
+    const response = await fetch(`${API_BASE_URL}/assessment/predict`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(assessmentData)
+    });
 
-  // Return placeholder prediction structure for frontend
-  return {
-    success: true,
-    predictions: {
-      '30-day': {
-        riskLevel: 'Low',
-        riskScore: 15,
-        costImpact: 250,
-        roiValue: 1200
-      },
-      '60-day': {
-        riskLevel: 'Medium',
-        riskScore: 35,
-        costImpact: 750,
-        roiValue: 2800
-      },
-      '90-day': {
-        riskLevel: 'High',
-        riskScore: 65,
-        costImpact: 1800,
-        roiValue: 4500
-      }
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Prediction failed');
     }
-  };
+
+    const result = await response.json();
+    
+    console.log('✅ Received ML predictions:', result);
+    
+    return result;
+
+  } catch (error) {
+    console.error('❌ Prediction API error:', error);
+    
+    // Return error structure
+    return {
+      success: false,
+      error: error.message,
+      predictions: null
+    };
+  }
 };
 
 /**

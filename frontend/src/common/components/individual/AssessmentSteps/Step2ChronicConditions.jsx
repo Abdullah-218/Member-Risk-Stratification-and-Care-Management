@@ -8,21 +8,19 @@ import styles from './AssessmentSteps.module.css';
 const Step2ChronicConditions = ({ data, onUpdate }) => {
   const { conditions } = data;
 
+  // Exact ML model chronic conditions (11 fields)
   const conditionsList = [
-    { key: 'diabetes', label: 'Diabetes' },
-    { key: 'heartDisease', label: 'Heart Disease' },
-    { key: 'copd', label: 'COPD' },
-    { key: 'kidneyDisease', label: 'Kidney Disease' },
-    { key: 'cancer', label: 'Cancer' },
-    { key: 'stroke', label: 'Stroke' },
-    { key: 'depression', label: 'Depression' },
-    { key: 'alzheimers', label: "Alzheimer's" },
-    { key: 'hypertension', label: 'Hypertension' },
-    { key: 'arthritis', label: 'Arthritis' },
-    { key: 'esrd', label: 'End-Stage Renal Disease (ESRD)' },
-    { key: 'chf', label: 'Congestive Heart Failure (CHF)' },
-    { key: 'ckd', label: 'Chronic Kidney Disease (CKD)' },
-    { key: 'ischemicHeartDisease', label: 'Ischemic Heart Disease' }
+    { key: 'has_alzheimers', label: "Alzheimer's Disease" },
+    { key: 'has_chf', label: 'Congestive Heart Failure (CHF)' },
+    { key: 'has_ckd', label: 'Chronic Kidney Disease (CKD)' },
+    { key: 'has_cancer', label: 'Cancer' },
+    { key: 'has_copd', label: 'COPD (Chronic Obstructive Pulmonary Disease)' },
+    { key: 'has_depression', label: 'Depression' },
+    { key: 'has_diabetes', label: 'Diabetes Mellitus' },
+    { key: 'has_ischemic_heart', label: 'Ischemic Heart Disease' },
+    { key: 'has_ra_oa', label: 'Rheumatoid Arthritis / Osteoarthritis' },
+    { key: 'has_stroke', label: 'Stroke / TIA (Transient Ischemic Attack)' },
+    { key: 'has_esrd', label: 'End-Stage Renal Disease (ESRD)' }
   ];
 
   const handleConditionChange = (conditionKey, checked) => {
@@ -31,7 +29,10 @@ const Step2ChronicConditions = ({ data, onUpdate }) => {
 
   return (
     <div className={styles.step}>
-      <h3 className={styles.stepTitle}>Step 2 of 5: Chronic Conditions</h3>
+      <h3 className={styles.stepTitle}>Step 2 of 4: Chronic Conditions</h3>
+      <p className={styles.stepDescription}>
+        Select any chronic conditions you currently have. These help us assess your health risk accurately.
+      </p>
       <div className={styles.form}>
         <div className={styles.label}>Do you have any of these conditions?</div>
         <div className={styles.checkboxGroup}>

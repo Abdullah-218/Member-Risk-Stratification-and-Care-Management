@@ -25,73 +25,39 @@ const useAssessmentState = () => {
 
   const [currentStep, setCurrentStep] = useState(draft?.currentStep ?? 1);
   const [assessmentData, setAssessmentData] = useState(draft?.assessmentData ?? {
-    // Stage 1: Demographics
+    // Stage 1: Demographics (matches ML model)
     demographics: {
       age: '',
-      gender: '',
-      annualHealthcareCost: ''
+      gender: '',  // Will be converted to 1=Male, 2=Female
+      race: '',    // 1=White, 2=Black, 3=Other, 5=Hispanic
+      total_annual_cost: ''
     },
 
-    // Stage 2: Chronic Conditions
+    // Stage 2: Chronic Conditions (matches ML model exactly - 11 conditions)
     conditions: {
-      diabetes: false,
-      heartDisease: false,
-      copd: false,
-      cancer: false,
-      kidneyDisease: false,
-      stroke: false,
-      depression: false,
-      alzheimers: false,
-      hypertension: false,
-      arthritis: false,
-      esrd: false,
-      chf: false,
-      ckd: false,
-      ischemicHeartDisease: false
+      has_alzheimers: false,
+      has_chf: false,
+      has_ckd: false,
+      has_cancer: false,
+      has_copd: false,
+      has_depression: false,
+      has_diabetes: false,
+      has_ischemic_heart: false,
+      has_ra_oa: false,
+      has_stroke: false,
+      has_esrd: false
     },
 
-    // Stage 3: Healthcare Utilization (Past 12 Months)
+    // Stage 3: Healthcare Utilization (matches ML model - 4 fields only)
     utilization: {
-      hospitalAdmissions: '',
-      totalHospitalDays: '',
-      daysSinceLastAdmission: '',
-      recentAdmissionPast30Days: 'no',
-      outpatientVisits: '',
-      highOutpatientUser: 'no',
-      erEdVisits: '',
-      specialistVisits: ''
+      total_admissions: '',
+      total_hospital_days: '',
+      days_since_last_admission: '',
+      total_outpatient_visits: ''
     },
 
-    // Stage 4: Additional Health Metrics
-    metrics: {
-      totalInpatientCost: '',
-      costPercentile: '',
-      highCostPatientTop20: 'no',
-      frailtyScore: '',
-      complexityIndex: ''
-    },
-
-    // Prediction Results (placeholder values for frontend)
-    predictions: {
-      '30-day': {
-        riskLevel: 'Low',
-        riskScore: 15,
-        costImpact: 250,
-        roiValue: 1200
-      },
-      '60-day': {
-        riskLevel: 'Medium',
-        riskScore: 35,
-        costImpact: 750,
-        roiValue: 2800
-      },
-      '90-day': {
-        riskLevel: 'High',
-        riskScore: 65,
-        costImpact: 1800,
-        roiValue: 4500
-      }
-    }
+    // Prediction Results (will be populated by backend)
+    predictions: null
   });
 
   // Update specific field in assessment data
@@ -156,15 +122,20 @@ const useAssessmentState = () => {
   const validateStep = useCallback((step) => {
     switch (step) {
       case 1:
-        return true;
+        // Demographics: age, gender, race, total_annual_cost required
+        return (
+          assessmentData.demographics.age !== '' &&
+          assessmentData.demographics.gender !== '' &&
+          assessmentData.demographics.race !== '' &&
+          assessmentData.demographics.total_annual_cost !== ''
+        );
       case 2:
         // Conditions are optional, always valid
         return true;
       case 3:
+        // Utilization fields are optional (can be 0)
         return true;
       case 4:
-        return true;
-      case 5:
         // Review step is always valid
         return true;
       default:

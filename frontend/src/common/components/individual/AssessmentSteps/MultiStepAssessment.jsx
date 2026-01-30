@@ -4,14 +4,14 @@ import { onPredict } from '../../../services/assessmentApi';
 import Step1Demographics from './Step1Demographics';
 import Step2ChronicConditions from './Step2ChronicConditions';
 import Step3HealthcareUtilization from './Step3HealthcareUtilization';
-import Step4HealthMetrics from './Step4HealthMetrics';
-import Step5ReviewPredict from './Step5ReviewPredict';
+import Step4ReviewPredict from './Step4ReviewPredict';
 import StepNavigation from './StepNavigation';
 import styles from './AssessmentSteps.module.css';
 
 /**
  * Multi-Step Assessment Component
- * Orchestrates the 5-stage assessment flow with proper state management
+ * Orchestrates the 4-stage assessment flow with proper state management
+ * Updated to match ML model's 19 raw input fields exactly
  */
 const MultiStepAssessment = () => {
   const {
@@ -54,7 +54,7 @@ const MultiStepAssessment = () => {
   // Handle navigation with validation
   const handleNext = () => {
     if (validateStep(currentStep)) {
-      if (currentStep < 5) {
+      if (currentStep < 4) {
         nextStep();
       }
     } else {
@@ -116,10 +116,8 @@ const MultiStepAssessment = () => {
       case 3:
         return <Step3HealthcareUtilization {...commonProps} />;
       case 4:
-        return <Step4HealthMetrics {...commonProps} />;
-      case 5:
         return (
-          <Step5ReviewPredict
+          <Step4ReviewPredict
             {...commonProps}
             onPredict={handlePredict}
             onBack={handlePrev}
@@ -135,10 +133,10 @@ const MultiStepAssessment = () => {
       {renderCurrentStep()}
 
       {/* Navigation - Show on all steps except the last */}
-      {currentStep < 5 && (
+      {currentStep < 4 && (
         <StepNavigation
           currentStep={currentStep}
-          totalSteps={5}
+          totalSteps={4}
           onNext={handleNext}
           onPrev={handlePrev}
           onGoToStep={handleGoToStep}
