@@ -1,0 +1,45 @@
+﻿.container {
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1rem;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.option:hover:not(.disabled) {
+  background-color: #f9fafb;
+  border-color: #2563eb;
+}
+
+.option.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.option input[type="radio"] {
+  cursor: pointer;
+}
+
+.option.disabled input[type="radio"] {
+  cursor: not-allowed;
+}
