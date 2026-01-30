@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { useNavigate, useLocation, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Download, ArrowLeft } from "lucide-react";
 
-import { useMembers } from "../../context/MemberContext";
+import { getDepartmentMembers } from "../../services/api/dashboardApi";
 import { useCarePlan } from "../../context/CarePlanContext";
 import { useNavigationHistory } from "../../context/NavigationHistoryContext";
 // utils (global)
@@ -21,10 +21,8 @@ import styles from "./DepartmentMembersPage.module.css";
 
 
 const DepartmentMembersPage = () => {
-  const { members: allMembers, setSelectedMember } = useMembers();
   const { assignCarePlan, getCarePlan } = useCarePlan();
   const navigate = useNavigate();
-  const location = useLocation();
   const { departmentName: urlDepartmentName } = useParams();
   const { getPreviousPage } = useNavigationHistory();
   const [searchParams] = useSearchParams();
@@ -32,44 +30,77 @@ const DepartmentMembersPage = () => {
   const [activeRiskFilter, setActiveRiskFilter] = useState(null);
   const [selectedMemberForAssignment, setSelectedMemberForAssignment] = useState(null);
 
-  // ✅ ADD PREDICTION WINDOW STATE
   const [predictionWindow, setPredictionWindow] = useState(90);
+  const [riskFilter, setRiskFilter] = useState('all');
+  
+  // ✅ Real API data states
+  const [apiMembers, setApiMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // ✅ Handle window parameter from URL
+  // ✅ Handle window parameter and risk filter from URL
   useEffect(() => {
     const windowParam = searchParams.get('window');
+    const riskFilterParam = searchParams.get('riskFilter');
+    
     if (windowParam) {
       setPredictionWindow(parseInt(windowParam));
     }
+    
+    if (riskFilterParam === 'high') {
+      setRiskFilter('high'); // Only show critical + high risk (tiers 4+5)
+    }
   }, [searchParams]);
+
+  // Get department name from URL params
+  const departmentName = urlDepartmentName ? decodeURIComponent(urlDepartmentName) : 'Department';
+
+  // ✅ Fetch real department members from API
+  useEffect(() => {
+    const fetchDepartmentMembers = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        console.log('Fetching department members:', {
+          departmentName,
+          predictionWindow,
+          riskFilter
+        });
+        
+        // If riskFilter is 'high', fetch only tiers 4 and 5 (critical + high)
+        const tiers = riskFilter === 'high' ? [4, 5] : [];
+        
+        console.log('Fetching with tiers:', tiers);
+        
+        const response = await getDepartmentMembers(departmentName, predictionWindow, tiers);
+        
+        console.log('API Response:', response);
+        console.log('Members count:', response.data?.length);
+        
+        setApiMembers(response.data || []);
+      } catch (err) {
+        console.error('Error fetching department members:', err);
+        setError('Failed to load department members. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (departmentName) {
+      fetchDepartmentMembers();
+    }
+  }, [departmentName, predictionWindow, riskFilter]);
 
   // ✅ Scroll to top when page loads
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Get department name from URL params or fallback to state
-  const departmentName = urlDepartmentName ? decodeURIComponent(urlDepartmentName) : (location.state?.departmentName || 'Department');
+  // Use API data as department members
+  const departmentMembers = apiMembers;
 
-  // ✅ ADJUST DEPARTMENT MEMBERS BASED ON WINDOW
-  const adjustedDepartmentMembers = useMemo(() => {
-    const baseMembers = location.state?.members ||
-      allMembers.filter(m => m.department === departmentName);
-
-    let multiplier = 1;
-    if (predictionWindow === 30) multiplier = 0.85;
-    if (predictionWindow === 60) multiplier = 1;
-    if (predictionWindow === 90) multiplier = 1.15;
-
-    return baseMembers.map(m => ({
-      ...m,
-      riskScore: Math.min(m.riskScore * multiplier, 1),
-    }));
-  }, [allMembers, departmentName, location.state?.members, predictionWindow]);
-
-  const departmentMembers = adjustedDepartmentMembers;
-
-  // Organize members by risk tier
+  // Organize members by risk tier (using database riskTier field)
   const riskTiers = useMemo(() => {
     const tiers = {
       critical: [],
@@ -80,10 +111,11 @@ const DepartmentMembersPage = () => {
     };
 
     departmentMembers.forEach(member => {
-      if (member.riskScore >= 0.8) tiers.critical.push(member);
-      else if (member.riskScore >= 0.6) tiers.high.push(member);
-      else if (member.riskScore >= 0.4) tiers.medium.push(member);
-      else if (member.riskScore >= 0.2) tiers.mediumLow.push(member);
+      // Use database tier field (1-5)
+      if (member.riskTier === 5) tiers.critical.push(member);
+      else if (member.riskTier === 4) tiers.high.push(member);
+      else if (member.riskTier === 3) tiers.medium.push(member);
+      else if (member.riskTier === 2) tiers.mediumLow.push(member);
       else tiers.low.push(member);
     });
 
@@ -125,8 +157,8 @@ const DepartmentMembersPage = () => {
   const displayMembers = getDisplayMembers();
 
   const handleViewDetails = (member) => {
-    setSelectedMember(member);
-    navigate(`/org/member/${member.id}`);
+    // Navigate to member details page
+    navigate(`/org/member/${member.id}`, { state: { member } });
   };
 
   const handleAssignClick = (member) => {
@@ -157,6 +189,26 @@ const DepartmentMembersPage = () => {
     navigate(previousPage);
   };
 
+  // Loading and error states
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loading}>Loading department members...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.error}>
+          <p>{error}</p>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -169,8 +221,18 @@ const DepartmentMembersPage = () => {
           Back
         </button>
         <div className={styles.titleSection}>
-          <h2 className={styles.title}>🏥 {departmentName}</h2>
-          <span className={styles.memberCount}>{departmentMembers.length} members</span>
+          <h2 className={styles.title}>
+            🏥 {departmentName}
+            {riskFilter === 'high' && (
+              <span className={styles.filterBadge}>High-Risk Only</span>
+            )}
+          </h2>
+          <span className={styles.memberCount}>
+            {departmentMembers.length} members
+            {riskFilter === 'high' && (
+              <span className={styles.filterNote}> (Critical + High Risk)</span>
+            )}
+          </span>
         </div>
         <div className={styles.actions}>
           <Button variant="secondary" onClick={handleExport}>

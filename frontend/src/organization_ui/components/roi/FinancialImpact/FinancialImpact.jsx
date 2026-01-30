@@ -6,9 +6,15 @@ const FinancialImpact = ({ data }) => {
   // ✅ safety check to avoid blank screen
   if (!data) return null;
 
-  const totalSavings = data.projectedCosts - data.actualCosts;
-  const avgSavingsPerEvent =
-    totalSavings / data.preventedHospitalizations;
+  const projectedCosts = parseFloat(data.projectedCosts || 0);
+  const actualCosts = parseFloat(data.actualCosts || 0);
+  const totalSavings = parseFloat(data.totalSavings || 0);
+  const savingsPercentage = parseFloat(data.savingsPercentage || 0);
+  const preventedHospitalizations = parseInt(data.preventedHospitalizations || 0);
+  
+  const avgSavingsPerEvent = preventedHospitalizations > 0 
+    ? totalSavings / preventedHospitalizations 
+    : 0;
 
   return (
     <Card>
@@ -20,7 +26,7 @@ const FinancialImpact = ({ data }) => {
             Projected Costs (No Intervention)
           </div>
           <div className={styles.value}>
-            ${(data.projectedCosts / 1_000_000).toFixed(1)}M
+            ${(projectedCosts / 1_000_000).toFixed(1)}M
           </div>
         </div>
 
@@ -29,7 +35,7 @@ const FinancialImpact = ({ data }) => {
             Actual Costs (With Intervention)
           </div>
           <div className={styles.value}>
-            ${(data.actualCosts / 1_000_000).toFixed(1)}M
+            ${(actualCosts / 1_000_000).toFixed(1)}M
           </div>
         </div>
 
@@ -40,7 +46,7 @@ const FinancialImpact = ({ data }) => {
             style={{ color: "#10b981" }}
           >
             ${(totalSavings / 1_000_000).toFixed(1)}M (
-            {data.savingsPercentage}%)
+            {savingsPercentage.toFixed(1)}%)
           </div>
         </div>
       </div>
@@ -51,7 +57,7 @@ const FinancialImpact = ({ data }) => {
             High-Risk Members Prevented Hospitalization:
           </div>
           <div className={styles.detailValue}>
-            {data.preventedHospitalizations}
+            {preventedHospitalizations}
           </div>
         </div>
 
@@ -60,7 +66,10 @@ const FinancialImpact = ({ data }) => {
             Average Savings per Prevented Event:
           </div>
           <div className={styles.detailValue}>
-            ${avgSavingsPerEvent.toLocaleString()}
+            ${avgSavingsPerEvent.toLocaleString(undefined, { 
+              minimumFractionDigits: 2, 
+              maximumFractionDigits: 2 
+            })}
           </div>
         </div>
       </div>

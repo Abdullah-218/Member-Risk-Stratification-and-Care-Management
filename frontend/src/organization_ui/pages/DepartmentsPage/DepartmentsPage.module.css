@@ -200,3 +200,127 @@
   color: #1e40af;
   font-weight: 600;
 }
+
+/* Loading and Error States */
+.loadingState,
+.errorState {
+  padding: 3rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.errorState {
+  color: #dc2626;
+}
+
+/* Department Code */
+.deptCode {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #6b7280;
+  margin-left: 0.5rem;
+}
+
+/* Metrics Section */
+.metrics {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.metricLabel {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metricValue {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Pie Chart Section */
+.visualizationCard {
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 1.5rem 0;
+}
+
+.pieChartContainer {
+  display: flex;
+  gap: 3rem;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.pieChart {
+  width: 300px;
+  height: 300px;
+  flex-shrink: 0;
+}
+
+.pieSlice {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.pieSlice:hover {
+  opacity: 0.8;
+}
+
+.pieLegend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 250px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.legendItem:hover {
+  background-color: #f3f4f6;
+}
+
+.legendColor {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.legendLabel {
+  flex: 1;
+  font-weight: 500;
+  color: #374151;
+}
+
+.legendValue {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}

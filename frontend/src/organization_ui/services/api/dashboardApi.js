@@ -307,3 +307,163 @@ export const getCompleteDashboardData = async (predictionWindow = '30_day') => {
   }
 };
 
+/**
+ * Fetch detailed department analytics with risk tier breakdown
+ * @param {string} predictionWindow - '30_day'|'60_day'|'90_day'
+ * @returns {Promise<Object>} { success, data: [...departments], total, window }
+ */
+export const getDepartmentAnalytics = async (predictionWindow = '30_day') => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/dashboard/department-analytics?window=${predictionWindow}`,
+      {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to fetch department analytics');
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('Error fetching department analytics:', error);
+    console.error('Error details:', {
+      message: error.message,
+      predictionWindow
+    });
+    throw error;
+  }
+};
+
+/**
+ * Get members from a specific department filtered by risk tiers
+ * @param {string} departmentName - Department name
+ * @param {number} predictionWindow - 30, 60, or 90 days
+ * @param {number[]} tiers - Array of tier numbers (e.g., [4, 5] for critical and high)
+ * @returns {Promise<Object>} Members data
+ */
+export const getDepartmentMembers = async (departmentName, predictionWindow = 90, tiers = []) => {
+  try {
+    const windowStr = `${predictionWindow}_day`;
+    const tiersParam = tiers.length > 0 ? `&tiers=${tiers.join(',')}` : '';
+    
+    const response = await fetch(
+      `${API_BASE_URL}/dashboard/department-members?departmentName=${encodeURIComponent(departmentName)}&window=${windowStr}${tiersParam}`
+    );
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to fetch department members');
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching department members:', error);
+    console.error('Error details:', {
+      message: error.message,
+      departmentName,
+      predictionWindow,
+      tiers
+    });
+    throw error;
+  }
+};
+
+/**
+ * Get patient counts by tier for intervention planning
+ * @param {number} predictionWindow - 30, 60, or 90 days
+ * @returns {Promise<Object>} Tier counts data
+ */
+export const getTierCounts = async (predictionWindow = 90) => {
+  try {
+    const windowStr = `${predictionWindow}_day`;
+    console.log(`📊 Fetching tier counts for window: ${windowStr}`);
+    
+    const response = await fetch(
+      `${API_BASE_URL}/dashboard/tier-counts?window=${windowStr}`
+    );
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('✅ Tier counts data:', data);
+    
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to fetch tier counts');
+    }
+    
+    return data.data;
+  } catch (error) {
+    console.error('❌ Error fetching tier counts:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get ROI financial impact metrics
+ * @param {number} predictionWindow - 30, 60, or 90 days
+ * @returns {Promise<Object>} Financial impact data
+ */
+export const getROIFinancialImpact = async (predictionWindow = 90) => {
+  try {
+    const windowStr = `${predictionWindow}_day`;
+    
+    const response = await fetch(
+      `${API_BASE_URL}/dashboard/roi-financial-impact?window=${windowStr}`
+    );
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to fetch ROI financial impact');
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching ROI financial impact:', error);
+    console.error('Error details:', {
+      message: error.message,
+      predictionWindow
+    });
+    throw error;
+  }
+};
+
+// Export all functions as dashboardApi object AND as named exports for backward compatibility
+export const dashboardApi = {
+  getDashboardSummary,
+  getDashboardMembers,
+  getTierStatistics,
+  getDepartmentSummary,
+  getPriorityPatients,
+  getTrendData,
+  getTierFinancials,
+  getMembersByTier,
+  getCompleteDashboardData,
+  getDepartmentAnalytics,
+  getDepartmentMembers,
+  getTierCounts,
+  getROIFinancialImpact
+};

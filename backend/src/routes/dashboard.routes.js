@@ -339,4 +339,156 @@ router.get('/members-by-tier', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/dashboard/department-analytics
+ * Get detailed department analytics with risk tier breakdown
+ * 
+ * Query params:
+ *  - window: 30_day|60_day|90_day (default: 30_day)
+ * 
+ * Response: { success, data: [...departments with tier breakdown] }
+ */
+router.get('/department-analytics', async (req, res) => {
+  try {
+    const { window = '30_day' } = req.query;
+    
+    const departments = await Dashboard.getDepartmentAnalytics(window);
+    
+    res.json({
+      success: true,
+      window,
+      total: departments.length,
+      data: departments,
+    });
+  } catch (error) {
+    console.error('Dashboard department-analytics error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch department analytics',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * GET /api/dashboard/department-members
+ * Get members from a specific department filtered by risk tiers
+ * Query params: departmentName, window, tiers (comma-separated)
+ */
+router.get('/department-members', async (req, res) => {
+  try {
+    const { 
+      departmentName, 
+      window = '30_day',
+      tiers = '',
+      limit = 1000,
+      offset = 0
+    } = req.query;
+    
+    if (!departmentName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Department name is required',
+      });
+    }
+    
+    // Parse tiers from comma-separated string to array of integers
+    const tierArray = tiers 
+      ? tiers.split(',').map(t => parseInt(t.trim())).filter(t => !isNaN(t))
+      : [];
+    
+    const members = await Dashboard.getMembersByDepartment(
+      departmentName,
+      window,
+      tierArray,
+      parseInt(limit),
+      parseInt(offset)
+    );
+    
+    res.json({
+      success: true,
+      departmentName,
+      window,
+      tiers: tierArray,
+      total: members.length,
+      data: members,
+    });
+  } catch (error) {
+    console.error('Dashboard department-members error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch department members',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * GET /api/dashboard/tier-counts
+ * Get patient counts by risk tier
+ * Query params: window (30_day|60_day|90_day)
+ */
+router.get('/tier-counts', async (req, res) => {
+  try {
+    const { window = '30_day' } = req.query;
+    console.log(`📊 Fetching tier counts for window: ${window}`);
+
+    const tierCounts = await Dashboard.getTierCounts(window);
+    console.log('📋 Raw tier counts from DB:', tierCounts);
+
+    // Transform to object for easier access
+    const counts = {};
+    tierCounts.forEach(tier => {
+      console.log('Processing tier:', tier);
+      const tierNum = tier.riskTier || tier.risk_tier;
+      const patientCount = tier.patientCount || tier.patient_count;
+      const successRate = tier.avgSuccessRate || tier.avg_success_rate;
+      counts[`tier${tierNum}`] = {
+        count: parseInt(patientCount),
+        successRate: parseFloat(successRate)
+      };
+    });
+
+    console.log('✅ Transformed counts:', counts);
+
+    res.json({
+      success: true,
+      window,
+      data: counts
+    });
+  } catch (error) {
+    console.error('❌ Error fetching tier counts:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/dashboard/roi-financial-impact
+ * Get ROI financial impact metrics for a specific window
+ * Query params: window (30_day|60_day|90_day)
+ */
+router.get('/roi-financial-impact', async (req, res) => {
+  try {
+    const { window = '30_day' } = req.query;
+    
+    const financialImpact = await Dashboard.getROIFinancialImpact(window);
+    
+    res.json({
+      success: true,
+      window,
+      data: financialImpact,
+    });
+  } catch (error) {
+    console.error('Dashboard roi-financial-impact error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch ROI financial impact',
+      error: error.message,
+    });
+  }
+});
+
 export default router;
