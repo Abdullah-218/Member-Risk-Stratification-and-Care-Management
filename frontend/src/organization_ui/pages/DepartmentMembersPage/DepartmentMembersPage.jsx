@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { Download, ArrowLeft } from "lucide-react";
+import { Download, ArrowLeft, Search } from "lucide-react";
 
 import { getDepartmentMembers } from "../../services/api/dashboardApi";
 import { useCarePlan } from "../../context/CarePlanContext";
@@ -29,6 +29,7 @@ const DepartmentMembersPage = () => {
   const [sortBy, setSortBy] = useState('risk-desc');
   const [activeRiskFilter, setActiveRiskFilter] = useState(null);
   const [selectedMemberForAssignment, setSelectedMemberForAssignment] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [predictionWindow, setPredictionWindow] = useState(90);
   const [riskFilter, setRiskFilter] = useState('all');
@@ -142,16 +143,29 @@ const DepartmentMembersPage = () => {
   ];
 
   const getDisplayMembers = () => {
+    let members;
     if (activeRiskFilter) {
-      return riskTiers[activeRiskFilter];
+      members = riskTiers[activeRiskFilter];
+    } else {
+      members = departmentMembers.sort((a, b) => {
+        if (sortBy === 'risk-desc') return b.riskScore - a.riskScore;
+        if (sortBy === 'risk-asc') return a.riskScore - b.riskScore;
+        if (sortBy === 'cost-desc') return b.estimatedCost - a.estimatedCost;
+        if (sortBy === 'cost-asc') return a.estimatedCost - b.estimatedCost;
+        return 0;
+      });
     }
-    return departmentMembers.sort((a, b) => {
-      if (sortBy === 'risk-desc') return b.riskScore - a.riskScore;
-      if (sortBy === 'risk-asc') return a.riskScore - b.riskScore;
-      if (sortBy === 'cost-desc') return b.estimatedCost - a.estimatedCost;
-      if (sortBy === 'cost-asc') return a.estimatedCost - b.estimatedCost;
-      return 0;
-    });
+    
+    // Apply search filter
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase();
+      return members.filter((member) => {
+        const memberId = String(member.id).toLowerCase();
+        return memberId.includes(query);
+      });
+    }
+    
+    return members;
   };
 
   const displayMembers = getDisplayMembers();
@@ -235,6 +249,33 @@ const DepartmentMembersPage = () => {
           </span>
         </div>
         <div className={styles.actions}>
+          {/* Search Input */}
+          <div style={{ position: 'relative' }}>
+            <Search 
+              size={18} 
+              style={{ 
+                position: 'absolute', 
+                left: '12px', 
+                top: '50%', 
+                transform: 'translateY(-50%)', 
+                color: '#6b7280' 
+              }} 
+            />
+            <input
+              type="text"
+              placeholder="Search by Patient ID..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                padding: '8px 12px 8px 40px',
+                borderRadius: '8px',
+                border: '1px solid #d1d5db',
+                fontSize: '14px',
+                width: '250px',
+                outline: 'none'
+              }}
+            />
+          </div>
           <Button variant="secondary" onClick={handleExport}>
             <Download size={16} /> Export
           </Button>

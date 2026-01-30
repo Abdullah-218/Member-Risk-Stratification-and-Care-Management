@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Users, ChevronLeft, ChevronRight, Filter } from "lucide-react";
+import { Users, ChevronLeft, ChevronRight, Filter, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { getDashboardMembers } from "../../services/api/dashboardApi";
@@ -25,6 +25,7 @@ const AllMembersPage = () => {
   const [selectedCostFilter, setSelectedCostFilter] = useState("all");
   const [selectedConditions, setSelectedConditions] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   
   // List of all possible conditions for filter
@@ -73,6 +74,13 @@ const AllMembersPage = () => {
   /* ---------------- FILTERING LOGIC ---------------- */
   const filteredMembers = useMemo(() => {
     return allMembers.filter((member) => {
+      // Search filter by ID
+      if (searchQuery.trim() !== "") {
+        const query = searchQuery.toLowerCase();
+        const memberId = String(member.id).toLowerCase();
+        if (!memberId.includes(query)) return false;
+      }
+
       // Risk filter
       if (selectedRiskFilter !== "all") {
         if (selectedRiskFilter === "5" && member.riskTier !== 5) return false;
@@ -100,7 +108,7 @@ const AllMembersPage = () => {
 
       return true;
     });
-  }, [allMembers, selectedRiskFilter, selectedCostFilter, selectedConditions]);
+  }, [allMembers, selectedRiskFilter, selectedCostFilter, selectedConditions, searchQuery]);
 
   /* ---------------- PAGINATION ---------------- */
   const totalPages = Math.ceil(filteredMembers.length / ITEMS_PER_PAGE);
@@ -111,7 +119,7 @@ const AllMembersPage = () => {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedRiskFilter, selectedCostFilter, selectedConditions]);
+  }, [selectedRiskFilter, selectedCostFilter, selectedConditions, searchQuery]);
 
   /* ---------------- HANDLERS ---------------- */
   const handleNextPage = () => {
@@ -145,12 +153,14 @@ const AllMembersPage = () => {
     setSelectedRiskFilter("all");
     setSelectedCostFilter("all");
     setSelectedConditions([]);
+    setSearchQuery("");
   };
 
   const activeFilterCount = 
     (selectedRiskFilter !== "all" ? 1 : 0) +
     (selectedCostFilter !== "all" ? 1 : 0) +
-    selectedConditions.length;
+    selectedConditions.length +
+    (searchQuery.trim() !== "" ? 1 : 0);
 
   /* ---------------- UI ---------------- */
   return (
@@ -166,13 +176,42 @@ const AllMembersPage = () => {
             </p>
           </div>
         </div>
-        <Button
-          variant={showFilters ? "primary" : "secondary"}
-          onClick={() => setShowFilters(!showFilters)}
-        >
-          <Filter size={16} />
-          Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
-        </Button>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          {/* Search Input */}
+          <div style={{ position: 'relative' }}>
+            <Search 
+              size={18} 
+              style={{ 
+                position: 'absolute', 
+                left: '12px', 
+                top: '50%', 
+                transform: 'translateY(-50%)', 
+                color: '#6b7280' 
+              }} 
+            />
+            <input
+              type="text"
+              placeholder="Search by Patient ID..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                padding: '8px 12px 8px 40px',
+                borderRadius: '8px',
+                border: '1px solid #d1d5db',
+                fontSize: '14px',
+                width: '250px',
+                outline: 'none'
+              }}
+            />
+          </div>
+          <Button
+            variant={showFilters ? "primary" : "secondary"}
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter size={16} />
+            Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
+          </Button>
+        </div>
       </div>
 
       {/* FILTERS PANEL */}

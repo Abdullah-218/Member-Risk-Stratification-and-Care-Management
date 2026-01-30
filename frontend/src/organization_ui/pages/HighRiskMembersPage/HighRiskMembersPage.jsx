@@ -1,6 +1,6 @@
 ﻿import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Download } from "lucide-react";
+import { Download, Search } from "lucide-react";
 
 import { useCarePlan } from "../../context/CarePlanContext";
 import { getMembersByTier } from "../../services/api/dashboardApi";
@@ -25,6 +25,7 @@ const HighRiskMembersPage = () => {
   const [sortBy, setSortBy] = useState('risk-desc');
   const [selectedMemberForAssignment, setSelectedMemberForAssignment] = useState(null);
   const [predictionWindow, setPredictionWindow] = useState(90);
+  const [searchQuery, setSearchQuery] = useState("");
   
   // ✅ NEW STATE FOR REAL DATA
   const [members, setMembers] = useState([]);
@@ -108,10 +109,17 @@ const HighRiskMembersPage = () => {
   }, [predictionWindow, filter]);
 
   // ✅ No additional filtering needed - we fetch the correct tiers already
-  const highRiskMembers = useMemo(() =>
-    members,  // All fetched members are already high-risk (tiers 4+5)
-    [members]
-  );
+  const highRiskMembers = useMemo(() => {
+    // Filter by search query if provided
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase();
+      return members.filter((member) => {
+        const memberId = String(member.id).toLowerCase();
+        return memberId.includes(query);
+      });
+    }
+    return members;  // All fetched members are already high-risk (tiers 4+5)
+  }, [members, searchQuery]);
 
   const sortedMembers = useMemo(() =>
     [...highRiskMembers].sort((a, b) => {
@@ -186,6 +194,33 @@ const HighRiskMembersPage = () => {
           🚨 High-Risk Members ({highRiskMembers.length})
         </h2>
         <div className={styles.actions}>
+          {/* Search Input */}
+          <div style={{ position: 'relative' }}>
+            <Search 
+              size={18} 
+              style={{ 
+                position: 'absolute', 
+                left: '12px', 
+                top: '50%', 
+                transform: 'translateY(-50%)', 
+                color: '#6b7280' 
+              }} 
+            />
+            <input
+              type="text"
+              placeholder="Search by Patient ID..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                padding: '8px 12px 8px 40px',
+                borderRadius: '8px',
+                border: '1px solid #d1d5db',
+                fontSize: '14px',
+                width: '250px',
+                outline: 'none'
+              }}
+            />
+          </div>
           <Button variant="secondary" onClick={handleExport}>
             <Download size={16} /> Export
           </Button>
