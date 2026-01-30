@@ -1,9 +1,11 @@
-﻿import React from 'react';
+﻿import React, { useState } from 'react';
 import { Phone, Users, Eye } from 'lucide-react';
 import Button from '../../common/Button/Button';
 import styles from './MemberCard.module.css';
 
 function MemberCard({ member, onViewDetails, onAssign, onContact }) {
+  const [showAllConditions, setShowAllConditions] = useState(false);
+  
   if (!member) return null;
 
   const riskColor =
@@ -45,7 +47,28 @@ function MemberCard({ member, onViewDetails, onAssign, onContact }) {
           </div>
           <div className={styles.detailGroup}>
             <span className={styles.label}>Conditions:</span>
-            <span className={styles.value}>{member.conditions?.slice(0, 2).join(', ') || 'None'}</span>
+            <span className={styles.value}>
+              {member.conditions && member.conditions.length > 0 ? (
+                <>
+                  {showAllConditions 
+                    ? member.conditions.join(', ')
+                    : member.conditions.length > 2
+                      ? member.conditions.slice(0, 2).join(', ')
+                      : member.conditions.join(', ')
+                  }
+                  {member.conditions.length > 2 && (
+                    <button
+                      className={styles.moreButton}
+                      onClick={() => setShowAllConditions(!showAllConditions)}
+                    >
+                      {showAllConditions 
+                        ? ' (show less)' 
+                        : ` +${member.conditions.length - 2} more`}
+                    </button>
+                  )}
+                </>
+              ) : 'None'}
+            </span>
           </div>
           {member.careTeam && (
             <div className={styles.detailGroup}>

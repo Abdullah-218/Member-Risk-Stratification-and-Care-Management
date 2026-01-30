@@ -85,6 +85,7 @@ router.get('/members', async (req, res) => {
       netBenefit: parseFloat(m.net_benefit) || 0,
       roiPercent: parseFloat(m.roi_percent) || 0,
       roiCategory: m.roi_category,
+      conditions: m.conditions || [], // ✅ Add conditions
     }));
     
     res.json({

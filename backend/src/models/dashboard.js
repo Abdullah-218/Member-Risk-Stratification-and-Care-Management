@@ -75,11 +75,25 @@ export const Dashboard = {
         fp.expected_savings,
         fp.net_benefit,
         fp.roi_percent,
-        fp.roi_category
+        fp.roi_category,
+        ARRAY_REMOVE(ARRAY[
+          CASE WHEN pf.has_diabetes > 0 THEN 'Diabetes' END,
+          CASE WHEN pf.has_chf > 0 THEN 'Heart Failure' END,
+          CASE WHEN pf.has_ckd > 0 THEN 'Kidney Disease' END,
+          CASE WHEN pf.has_copd > 0 THEN 'COPD' END,
+          CASE WHEN pf.has_cancer > 0 THEN 'Cancer' END,
+          CASE WHEN pf.has_ischemic_heart > 0 THEN 'Ischemic Heart Disease' END,
+          CASE WHEN pf.has_stroke > 0 THEN 'Stroke' END,
+          CASE WHEN pf.has_alzheimers > 0 THEN 'Alzheimers' END,
+          CASE WHEN pf.has_depression > 0 THEN 'Depression' END,
+          CASE WHEN pf.has_esrd > 0 THEN 'ESRD' END,
+          CASE WHEN pf.has_ra_oa > 0 THEN 'Arthritis' END
+        ], NULL) as conditions
       FROM patients p
       LEFT JOIN departments d ON p.department_id = d.department_id
       LEFT JOIN predictions pred ON p.patient_id = pred.patient_id
       LEFT JOIN financial_projections fp ON pred.prediction_id = fp.prediction_id
+      LEFT JOIN patient_features pf ON p.patient_id = pf.patient_id
       WHERE pred.prediction_window = $1
         AND p.is_active = true
         AND pred.is_active = true
@@ -279,11 +293,26 @@ export const Dashboard = {
         fp.expected_savings as "expectedSavings",
         fp.net_benefit as "netBenefit",
         fp.roi_percent as "roiPercent",
-        fp.roi_category as "roiCategory"
+        fp.roi_category as "roiCategory",
+        -- Chronic conditions (convert 1/2 to boolean, 0 to false)
+        ARRAY_REMOVE(ARRAY[
+          CASE WHEN pf.has_diabetes > 0 THEN 'Diabetes' END,
+          CASE WHEN pf.has_chf > 0 THEN 'Heart Failure' END,
+          CASE WHEN pf.has_ckd > 0 THEN 'Kidney Disease' END,
+          CASE WHEN pf.has_copd > 0 THEN 'COPD' END,
+          CASE WHEN pf.has_cancer > 0 THEN 'Cancer' END,
+          CASE WHEN pf.has_ischemic_heart > 0 THEN 'Ischemic Heart Disease' END,
+          CASE WHEN pf.has_stroke > 0 THEN 'Stroke' END,
+          CASE WHEN pf.has_alzheimers > 0 THEN 'Alzheimers' END,
+          CASE WHEN pf.has_depression > 0 THEN 'Depression' END,
+          CASE WHEN pf.has_esrd > 0 THEN 'ESRD' END,
+          CASE WHEN pf.has_ra_oa > 0 THEN 'Arthritis' END
+        ], NULL) as conditions
       FROM patients p
       LEFT JOIN departments d ON p.department_id = d.department_id
       LEFT JOIN predictions pred ON p.patient_id = pred.patient_id
       LEFT JOIN financial_projections fp ON pred.prediction_id = fp.prediction_id
+      LEFT JOIN patient_features pf ON p.patient_id = pf.patient_id
       WHERE pred.prediction_window = $1
         ${tierFilter}
         AND p.is_active = true
@@ -389,11 +418,26 @@ export const Dashboard = {
         fp.expected_savings as "expectedSavings",
         fp.net_benefit as "netBenefit",
         fp.roi_percent as "roiPercent",
-        fp.roi_category as "roiCategory"
+        fp.roi_category as "roiCategory",
+        -- Chronic conditions
+        ARRAY_REMOVE(ARRAY[
+          CASE WHEN pf.has_diabetes > 0 THEN 'Diabetes' END,
+          CASE WHEN pf.has_chf > 0 THEN 'Heart Failure' END,
+          CASE WHEN pf.has_ckd > 0 THEN 'Kidney Disease' END,
+          CASE WHEN pf.has_copd > 0 THEN 'COPD' END,
+          CASE WHEN pf.has_cancer > 0 THEN 'Cancer' END,
+          CASE WHEN pf.has_ischemic_heart > 0 THEN 'Ischemic Heart Disease' END,
+          CASE WHEN pf.has_stroke > 0 THEN 'Stroke' END,
+          CASE WHEN pf.has_alzheimers > 0 THEN 'Alzheimers' END,
+          CASE WHEN pf.has_depression > 0 THEN 'Depression' END,
+          CASE WHEN pf.has_esrd > 0 THEN 'ESRD' END,
+          CASE WHEN pf.has_ra_oa > 0 THEN 'Arthritis' END
+        ], NULL) as conditions
       FROM patients p
       INNER JOIN departments d ON p.department_id = d.department_id
       INNER JOIN predictions pred ON p.patient_id = pred.patient_id
       LEFT JOIN financial_projections fp ON pred.prediction_id = fp.prediction_id
+      LEFT JOIN patient_features pf ON p.patient_id = pf.patient_id
       WHERE d.department_name = $1
         AND pred.prediction_window = $2
         ${tierFilter}

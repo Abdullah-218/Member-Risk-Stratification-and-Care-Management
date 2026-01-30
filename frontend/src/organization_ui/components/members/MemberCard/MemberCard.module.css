@@ -110,6 +110,23 @@
   font-weight: 500;
 }
 
+.moreButton {
+  background: none;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0;
+  margin-left: 4px;
+  transition: color 0.2s;
+}
+
+.moreButton:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
 .actions {
   display: flex;
   gap: 8px;

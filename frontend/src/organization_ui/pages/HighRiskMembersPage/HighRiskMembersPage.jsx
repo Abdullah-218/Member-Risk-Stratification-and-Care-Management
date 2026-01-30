@@ -92,6 +92,7 @@ const HighRiskMembersPage = () => {
           gender: m.gender,
           lastVisit: m.lastVisit,
           careTeam: m.careTeam || null,
+          conditions: m.conditions || [], // ✅ Add conditions from API
         }));
         
         setMembers(transformedMembers);
