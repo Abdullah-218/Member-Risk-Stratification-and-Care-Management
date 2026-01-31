@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import { AlertTriangle, TrendingUp, ChevronRight } from 'lucide-react';
+import { AlertTriangle, TrendingUp, ChevronRight, Bell } from 'lucide-react';
 import Card from '../../common/Card/Card';
 import Button from '../../common/Button/Button';
 import styles from './PriorityActions.module.css';
@@ -19,18 +19,30 @@ const PriorityActions = ({
 
   return (
     <Card>
-      <h3 className={styles.title}>⚠️ Priority Actions</h3>
+      <div className={styles.header}>
+        <div className={styles.titleSection}>
+          <div className={styles.iconWrapper}>
+            <Bell size={24} className={styles.headerIcon} />
+          </div>
+          <div>
+            <h3 className={styles.title}>Priority Actions</h3>
+            <span className={styles.subtitle}>Immediate attention required</span>
+          </div>
+        </div>
+      </div>
       
       <div className={styles.actions}>
-        <div className={styles.actionCard} style={{ backgroundColor: '#fef2f2', borderColor: '#fecaca' }}>
+        <div className={styles.actionCard}>
           <div className={styles.actionHeader}>
-            <AlertTriangle className={styles.actionIcon} style={{ color: '#dc2626' }} />
-            <div>
+            <div className={styles.actionIconWrapper}>
+              <AlertTriangle size={24} />
+            </div>
+            <div className={styles.actionContent}>
               <div className={styles.actionTitle}>
-                🚨 {highRiskCount} members need IMMEDIATE intervention
+                {highRiskCount} members need immediate intervention
               </div>
               <div className={styles.actionDescription}>
-                Very high-risk members require urgent care coordination
+                Critical risk members require urgent care coordination
               </div>
             </div>
           </div>
@@ -39,16 +51,17 @@ const PriorityActions = ({
           </Button>
         </div>
 
-        <div className={styles.actionCard} style={{ backgroundColor: '#fef9c3', borderColor: '#fde047' }}>
+        <div className={styles.actionCard}>
           <div className={styles.actionHeader}>
-            <TrendingUp className={styles.actionIcon} style={{ color: '#ca8a04' }} />
-            <div>
+            <div className={styles.actionIconWrapper} style={{ background: 'linear-gradient(135deg, #fef9c3 0%, #fde047 100%)' }}>
+              <TrendingUp size={24} style={{ color: '#ca8a04' }} />
+            </div>
+            <div className={styles.actionContent}>
               <div className={styles.actionTitle}>
-  📈 {diabetesRiskIncrease}% increase in diabetes risk vs last quarter
-</div>
-
+                {diabetesRiskIncrease}% increase in diabetes risk
+              </div>
               <div className={styles.actionDescription}>
-                Population health trends showing increased chronic disease burden
+                Population trends showing increased chronic disease burden
               </div>
             </div>
           </div>

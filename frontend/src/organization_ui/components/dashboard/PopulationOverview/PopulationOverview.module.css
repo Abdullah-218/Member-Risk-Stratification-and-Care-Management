@@ -1,10 +1,36 @@
 ﻿.header {
-  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.titleSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.iconWrapper {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #bfdbfe;
+}
+
+.headerIcon {
+  color: #3b82f6;
 }
 
 .title {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #111827;
   margin: 0 0 0.25rem 0;
 }
@@ -14,59 +40,106 @@
   color: #6b7280;
 }
 
-.totalMembers {
-  font-size: 1.125rem;
+.totalBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #eff6ff;
+  padding: 0.625rem 1.25rem;
+  border-radius: 2rem;
   font-weight: 600;
-  color: #111827;
-  margin-bottom: 1.5rem;
+  color: #1e40af;
+  font-size: 0.875rem;
 }
 
 .distribution {
-  margin-bottom: 2rem;
-}
-
-.sectionTitle {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .riskItem {
   display: grid;
-  grid-template-columns: 180px 1fr 200px;
-  gap: 1rem;
+  grid-template-columns: 200px 1fr 140px;
+  gap: 1.25rem;
   align-items: center;
-  margin-bottom: 0.75rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.riskItem:hover {
+  background: #f3f4f6;
+  transform: translateX(4px);
 }
 
 .riskLabel {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: #374151;
+  gap: 0.75rem;
 }
 
-.icon {
-  font-size: 1rem;
+.riskIconWrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.riskInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.riskName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.riskPercentage {
+  font-size: 0.75rem;
+  color: #6b7280;
 }
 
 .barContainer {
   height: 1.5rem;
   background-color: #e5e7eb;
-  border-radius: 0.25rem;
+  border-radius: 0.5rem;
   overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .bar {
   height: 100%;
-  transition: width 0.3s ease;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 0.5rem;
 }
 
 .count {
-  font-size: 0.875rem;
-  color: #6b7280;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.125rem;
+}
+
+.countNumber {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.countLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #dc2626;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .metrics {

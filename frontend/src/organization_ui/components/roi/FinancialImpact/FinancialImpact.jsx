@@ -11,9 +11,15 @@ const FinancialImpact = ({ data }) => {
   const totalSavings = parseFloat(data.totalSavings || 0);
   const savingsPercentage = parseFloat(data.savingsPercentage || 0);
   const preventedHospitalizations = parseInt(data.preventedHospitalizations || 0);
+  const positiveRoiCount = parseInt(data.positiveRoiCount || 0);
+  const totalPatients = parseInt(data.totalPatients || 0);
   
   const avgSavingsPerEvent = preventedHospitalizations > 0 
     ? totalSavings / preventedHospitalizations 
+    : 0;
+  
+  const positiveRoiPercentage = totalPatients > 0
+    ? (positiveRoiCount / totalPatients) * 100
     : 0;
 
   return (
@@ -47,6 +53,16 @@ const FinancialImpact = ({ data }) => {
           >
             ${(totalSavings / 1_000_000).toFixed(1)}M (
             {savingsPercentage.toFixed(1)}%)
+          </div>
+        </div>
+
+        <div className={styles.metric}>
+          <div className={styles.label}>Patients with Positive ROI</div>
+          <div
+            className={styles.value}
+            style={{ color: "#10b981" }}
+          >
+            {positiveRoiCount} ({positiveRoiPercentage.toFixed(1)}%)
           </div>
         </div>
       </div>

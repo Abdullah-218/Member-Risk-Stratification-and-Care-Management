@@ -1,44 +1,114 @@
-﻿.title {
-  font-size: 1.25rem;
-  font-weight: 600;
+﻿.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.titleSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.iconWrapper {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fecaca;
+}
+
+.headerIcon {
+  color: #dc2626;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #111827;
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 0.25rem 0;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
 }
 
 .actions {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .actionCard {
-  padding: 1.5rem;
-  border: 1px solid;
-  border-radius: 0.5rem;
+  padding: 1.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.actionCard:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.12);
+  transform: translateY(-2px);
 }
 
 .actionHeader {
   display: flex;
-  gap: 1rem;
+  gap: 1.25rem;
   align-items: flex-start;
 }
 
-.actionIcon {
-  width: 2rem;
-  height: 2rem;
+.actionIconWrapper {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
+.actionIconWrapper svg {
+  color: #dc2626;
+}
+
+.actionContent {
+  flex: 1;
+}
+
 .actionTitle {
-  font-weight: 600;
+  font-size: 1.125rem;
+  font-weight: 700;
   color: #111827;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
 }
 
 .actionDescription {
   font-size: 0.875rem;
   color: #6b7280;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .actionHeader {
+    flex-direction: column;
+  }
+
+  .actionIconWrapper {
+    width: 48px;
+    height: 48px;
+  }
 }

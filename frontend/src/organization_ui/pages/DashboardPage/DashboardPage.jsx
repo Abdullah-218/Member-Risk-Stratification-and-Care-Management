@@ -1,6 +1,6 @@
 ﻿import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Upload, Download } from "lucide-react";
+import { Upload, Download, LayoutDashboard, Users, TrendingUp, DollarSign, AlertCircle, Activity, BarChart3 } from "lucide-react";
 
 import { useMembers } from "../../context/MemberContext";
 import Button from "../../components/common/Button/Button";
@@ -27,12 +27,19 @@ const DashboardPage = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [trendData, setTrendData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [transitioning, setTransitioning] = useState(false);
   const [error, setError] = useState(null);
 
   // Fetch real data from API
   useEffect(() => {
     const fetchDashboardData = async () => {
-      setLoading(true);
+      // For initial load, show full loading
+      // For window changes, show transitioning state
+      if (dashboardData) {
+        setTransitioning(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
       
       try {
@@ -54,6 +61,7 @@ const DashboardPage = () => {
         setError(err.message);
       } finally {
         setLoading(false);
+        setTransitioning(false);
       }
     };
     
@@ -232,10 +240,8 @@ const DashboardPage = () => {
   if (loading) {
     return (
       <div className={styles.container}>
-        <div className={styles.header}>
-          <h2 className={styles.title}>Organization Dashboard</h2>
-        </div>
-        <div style={{ padding: '40px', textAlign: 'center' }}>
+        <div className={styles.loadingState}>
+          <Activity size={48} className={styles.loadingIcon} />
           <p>Loading dashboard data...</p>
         </div>
       </div>
@@ -246,12 +252,10 @@ const DashboardPage = () => {
   if (error) {
     return (
       <div className={styles.container}>
-        <div className={styles.header}>
-          <h2 className={styles.title}>Organization Dashboard</h2>
-        </div>
-        <div style={{ padding: '40px', textAlign: 'center', color: '#e74c3c' }}>
+        <div className={styles.errorState}>
+          <AlertCircle size={48} />
           <p>Error loading dashboard: {error}</p>
-          <p style={{ fontSize: '14px', marginTop: '10px' }}>
+          <p className={styles.errorSubtext}>
             Using fallback mock data instead.
           </p>
         </div>
@@ -261,16 +265,51 @@ const DashboardPage = () => {
 
   return (
     <div className={styles.container}>
-      {/* HEADER */}
-      <div className={styles.header}>
-        <h2 className={styles.title}>Organization Dashboard</h2>
-      </div>
-
+      {/* PREDICTION WINDOW SELECTOR - AT TOP */}
       <PredictionWindowSelector />
 
+      {/* MODERN HEADER WITH STATS */}
+      <div className={styles.headerSection}>
+        <div className={styles.headerContent}>
+          <div className={styles.headerLeft}>
+            <div className={styles.iconWrapper}>
+              <LayoutDashboard size={32} className={styles.headerIcon} />
+            </div>
+            <div>
+              <h1 className={styles.title}>Organization Dashboard</h1>
+              <p className={styles.subtitle}>
+                Real-time health risk analytics and population insights
+              </p>
+            </div>
+          </div>
+          <div className={styles.headerStats}>
+            <div className={styles.statCard}>
+              <Users size={20} className={styles.statIcon} />
+              <div>
+                <div className={styles.statValue}>{adjustedMembers.length.toLocaleString()}</div>
+                <div className={styles.statLabel}>Total Patients</div>
+              </div>
+            </div>
+            <div className={styles.statCard}>
+              <AlertCircle size={20} className={styles.statIcon} />
+              <div>
+                <div className={styles.statValue}>{highRiskCount}</div>
+                <div className={styles.statLabel}>High Risk</div>
+              </div>
+            </div>
+            <div className={styles.statCard}>
+              <DollarSign size={20} className={styles.statIcon} />
+              <div>
+                <div className={styles.statValue}>${(potentialSavings / 1000000).toFixed(1)}M</div>
+                <div className={styles.statLabel}>Potential Savings</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* MAIN CONTENT */}
-      <div className={styles.content}>
+      <div className={`${styles.content} ${transitioning ? styles.transitioning : ''}`}>
         {/* ✅ USE real API data */}
         <PopulationOverview
           members={adjustedMembers}

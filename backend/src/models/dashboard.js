@@ -502,7 +502,13 @@ export const Dashboard = {
         SUM(CASE WHEN pred.risk_tier >= 4 THEN 1 ELSE 0 END) as "preventedHospitalizations",
         
         -- Also return total high-risk members for reference
-        SUM(CASE WHEN pred.risk_tier >= 4 THEN 1 ELSE 0 END) as "highRiskMembers"
+        SUM(CASE WHEN pred.risk_tier >= 4 THEN 1 ELSE 0 END) as "highRiskMembers",
+        
+        -- Positive ROI patients count (roi_percent > 0)
+        SUM(CASE WHEN fp.roi_percent > 0 THEN 1 ELSE 0 END) as "positiveRoiCount",
+        
+        -- Total patients for percentage calculation
+        COUNT(*) as "totalPatients"
         
       FROM financial_projections fp
       INNER JOIN predictions pred ON fp.prediction_id = pred.prediction_id

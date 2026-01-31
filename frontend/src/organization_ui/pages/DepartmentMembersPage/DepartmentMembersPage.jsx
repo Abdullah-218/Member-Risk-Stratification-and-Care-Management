@@ -30,6 +30,8 @@ const DepartmentMembersPage = () => {
   const [activeRiskFilter, setActiveRiskFilter] = useState(null);
   const [selectedMemberForAssignment, setSelectedMemberForAssignment] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const membersPerPage = 100;
 
   const [predictionWindow, setPredictionWindow] = useState(90);
   const [riskFilter, setRiskFilter] = useState('all');
@@ -169,6 +171,28 @@ const DepartmentMembersPage = () => {
   };
 
   const displayMembers = getDisplayMembers();
+
+  // Pagination calculations
+  const totalPages = Math.ceil(displayMembers.length / membersPerPage);
+  const startIndex = (currentPage - 1) * membersPerPage;
+  const endIndex = startIndex + membersPerPage;
+  const currentMembers = displayMembers.slice(startIndex, endIndex);
+
+  // Debug logging
+  console.log('Pagination Debug:', {
+    totalMembers: displayMembers.length,
+    currentPage,
+    totalPages,
+    startIndex,
+    endIndex,
+    currentMembersCount: currentMembers.length,
+    membersPerPage
+  });
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeRiskFilter, sortBy, searchQuery]);
 
   const handleViewDetails = (member) => {
     // Navigate to member details page
@@ -335,7 +359,7 @@ const DepartmentMembersPage = () => {
       <div className={styles.memberList}>
         {displayMembers.length > 0 ? (
           <>
-            {displayMembers.slice(0, 20).map(member => (
+            {currentMembers.map(member => (
               <MemberCard
                 key={member.id}
                 member={member}
@@ -345,11 +369,54 @@ const DepartmentMembersPage = () => {
               />
             ))}
 
-            {displayMembers.length > 20 && (
-              <div className={styles.loadMore}>
-                <Button variant="secondary">
-                  Load More... ({displayMembers.length - 20} remaining)
-                </Button>
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className={styles.pagination}>
+                <div className={styles.paginationInfo}>
+                  Showing {startIndex + 1}-{Math.min(endIndex, displayMembers.length)} of {displayMembers.length} members
+                </div>
+                <div className={styles.paginationButtons}>
+                  <Button
+                    variant="secondary"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </Button>
+                  
+                  <div className={styles.pageNumbers}>
+                    {[...Array(totalPages)].map((_, index) => {
+                      const pageNum = index + 1;
+                      // Show first, last, current, and adjacent pages
+                      if (
+                        pageNum === 1 ||
+                        pageNum === totalPages ||
+                        (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                      ) {
+                        return (
+                          <button
+                            key={pageNum}
+                            className={`${styles.pageButton} ${currentPage === pageNum ? styles.activePage : ''}`}
+                            onClick={() => setCurrentPage(pageNum)}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      } else if (pageNum === currentPage - 2 || pageNum === currentPage + 2) {
+                        return <span key={pageNum} className={styles.ellipsis}>...</span>;
+                      }
+                      return null;
+                    })}
+                  </div>
+
+                  <Button
+                    variant="secondary"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </Button>
+                </div>
               </div>
             )}
           </>
