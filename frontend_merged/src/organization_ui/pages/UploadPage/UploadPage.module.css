@@ -1,0 +1,53 @@
+﻿.container {
+  padding: 2rem;
+}
+
+.card {
+  max-width: 56rem;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.uploadSection {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.uploadSection h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+}
+
+.uploadSection p {
+  color: #6b7280;
+  margin: 0 0 2rem 0;
+  font-size: 0.875rem;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
